@@ -5,7 +5,7 @@ authors = ["Alexey Gerasev <alexey.gerasev@gmail.com>"]
 license = "MIT/Apache-2.0"
 edition = "2018"
 
-description = "Core functionality for OpenCL ray/path tracer"
+description = "Core functionality for Clay - an OpenCL ray/path tracer"
 homepage = "https://github.com/nthend/clay"
 repository = "https://github.com/nthend/clay"
 readme = "README.md"
@@ -14,3 +14,8 @@ keywords = ["ray-tracing", "path-tracing", "opencl"]
 categories = ["graphics", "rendering", "multimedia"]
 
 [dependencies]
+ocl = "0.19"
+ocl-include = "0.3.1"
+
+[dev-dependencies]
+clay-gui = { path = "../clay-gui" }
