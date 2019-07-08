@@ -1,8 +1,14 @@
 pub mod error; 
 pub mod result; 
-pub mod worker;
+
+mod context;
+mod worker;
+mod buffer;
 
 
 pub use error::Error;
 pub use result::Result;
-pub use worker::{Worker, Screen};
+
+pub use context::Context;
+pub use worker::Worker;
+pub use buffer::*;

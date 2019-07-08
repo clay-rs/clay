@@ -8,5 +8,6 @@ __kernel void fill(
     int2 size = (int2)(width, height);
 
     uchar4 color = (uchar4)(convert_uchar2((255*pos)/size), 0, 1);
+
     vstore4(color, idx, buffer);
 }

@@ -1,107 +1,88 @@
-use std::fs;
-use std::path::{Path};
+use std::path::Path;
 
-use ocl::{
-    self,
-    flags,
-    Platform,
-    Device,
-    Context,
-    Queue,
-    Program,
-    Buffer,
-    Kernel,
-};
+use regex::{Regex, RegexBuilder, Captures};
+
+use ocl;
+use ocl_include;
+
+use crate::{Context, Screen};
+
+use lazy_static::lazy_static;
+
+
+lazy_static!{
+    static ref LOCATION: Regex = RegexBuilder::new(
+        r#"^([^:\r\n]*):(\d*):(\d*):"#
+    ).multi_line(true).build().unwrap();
+}
+
 
 #[allow(dead_code)]
 pub struct Worker {
-    platform:  Platform,
-    device:    Device,
-    context:   Context,
-    program:   Program,
-    queue:     Queue,
-}
-
-pub struct Screen {
-    buffer: Buffer<u8>,
-    dims: (usize, usize),
+    kernel: ocl::Kernel,
+    queue: ocl::Queue,
 }
 
 impl Worker {
-    pub fn new(platform: Platform, device: Device) -> crate::Result<Self> {
-        let src_path = Path::new("../clay-core/ocl_src/main.c");
-        let src = fs::read_to_string(src_path)?;
+    pub fn new(context: &Context) -> crate::Result<Self> {
+        let queue = context.queue().clone();
 
-        let context = Context::builder()
-        .platform(platform)
-        .devices(device.clone())
+        // load source
+        let hook = ocl_include::FsHook::new()
+        .include_dir(&Path::new("../clay-core/ocl-src/"))?;
+        let node = ocl_include::build(&hook, Path::new("main.c")).unwrap();
+        let (src, index) = node.collect();
+
+        // build program
+        let program = ocl::Program::builder()
+        .devices(context.device())
+        .source(src)
+        .build(context.context())
+        .map_err(|e| {
+            let message = LOCATION.replace_all(&e.to_string(), |caps: &Captures| -> String {
+                if &caps[1] == "<kernel>" { Ok(()) } else { Err(()) }
+                .and_then(|()| caps[2].parse::<usize>().map_err(|_| ()))
+                .and_then(|line| {
+                    index.search(line - 1 - 1 /* workaround */).ok_or(())
+                })
+                .and_then(|(path, local_line)| {
+                    Ok(format!(
+                        "{}:{}:{}:",
+                        path.to_string_lossy(),
+                        local_line,
+                        &caps[3],
+                    ))
+                })
+                .unwrap_or(caps[0].to_string())
+            }).into_owned();
+            ocl::Error::from(ocl::core::Error::from(message))
+        })?;
+
+        // build kernel
+        let kernel = ocl::Kernel::builder()
+        .program(&program)
+        .name("fill")
+        .queue(queue.clone())
+        .arg(&0i32)
+        .arg(&0i32)
+        .arg(None::<&ocl::Buffer<u8>>)
         .build()?;
 
-        let program = Program::builder()
-        .devices(device)
-        .src(src)
-        .build(&context)?;
-
-        let queue = Queue::new(&context, device, None)?;
-
-        Ok(Self { platform, device, context, program, queue })
-    }
-
-    pub fn create_screen(&self, size: (usize, usize)) -> crate::Result<Screen> {
-        let len = size.0*size.1;
-
-        let mut buffer = Buffer::<u8>::builder()
-        .queue(self.queue.clone())
-        .flags(flags::MEM_READ_WRITE)
-        .len(4*len)
-        .fill_val(0 as u8)
-        .build()?;
-
-        buffer.set_default_queue(self.queue.clone());
-
-        Ok(Screen { buffer, dims: size })
+        Ok(Self { kernel, queue })
     }
 
     pub fn render(&self, screen: &mut Screen) -> crate::Result<()> {
-        let size = screen.size();
-        let len = size.0*size.1;
-
-        let kernel = Kernel::builder()
-        .program(&self.program)
-        .name("fill")
-        .queue(self.queue.clone())
-        .global_work_size(len)
-        .arg(&(screen.size().0 as i32))
-        .arg(&(screen.size().1 as i32))
-        .arg(&screen.buffer)
-        .build()?;
+        self.kernel.set_arg(0, &(screen.dims().0 as i32))?;
+        self.kernel.set_arg(1, &(screen.dims().1 as i32))?;
+        self.kernel.set_arg(2, screen.buffer_mut())?;
 
         unsafe {
-            kernel.cmd()
-            .queue(&self.queue)
-            .global_work_offset(kernel.default_global_work_offset())
-            .global_work_size(len)
-            .local_work_size(kernel.default_local_work_size())
+            self.kernel
+            .cmd()
+            .global_work_size(screen.len())
             .enq()?;
         }
 
         Ok(())
-    }
-}
-
-impl Screen {
-    pub fn read(&self) -> crate::Result<Vec<u8>> {
-        let mut vec = vec![0 as u8; self.buffer.len()];
-
-        self.buffer.cmd()
-        .offset(0)
-        .read(&mut vec)
-        .enq()?;
-
-        Ok(vec)
-    }
-    
-    pub fn size(&self) -> (usize, usize) {
-        self.dims
     }
 }
