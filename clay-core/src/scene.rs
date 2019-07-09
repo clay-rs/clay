@@ -1,6 +1,14 @@
-use vecmat::vec::*;
+use crate::object::Object;
 
-pub struct Scene {
-	pos: Vec3<f64>,
-	rad: f64,
+#[macro_export]
+macro_rules! combine_objects {
+    () => {};
+}
+
+pub struct Scene<T: Object> {
+    objs: Vec<T>,
+}
+
+impl<T: Object> Scene<T> {
+
 }
