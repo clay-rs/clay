@@ -28,13 +28,9 @@ float2 screen(int2 pos, int2 size) {
     return p/(float)size.y;
 }
 
-__kernel void fill(
-    int width, int height,
-    __global uchar *buffer
-) {
+__kernel void fill(int2 size, __global uchar *buffer, float3 view) {
     int2 pos = (int2)(get_global_id(0), get_global_id(1));
-    int2 size = (int2)(width, height);
-    int idx = pos.x + pos.y*width;
+    int idx = pos.x + pos.y*size.x;
 
     Sphere s;
     s.pos = (float3)(0.0f, 0.0f, -10.0f);
@@ -42,7 +38,7 @@ __kernel void fill(
 
     float2 v = screen(pos, size);
     Ray r;
-    r.start = (float3)(0.0f, 0.0f, 0.0f);
+    r.start = view;
     r.dir = normalize((float3)(v, -1.0f));
     r.color = (float3)(1.0f, 1.0f, 1.0f);
 

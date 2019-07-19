@@ -1,14 +1,11 @@
 use std::path::Path;
-
 use regex::{Regex, RegexBuilder, Captures};
-
-use ocl;
+use ocl::{self, prm};
 use ocl_include;
-
+use vecmat::vec::*;
 use crate::{
     Context, Screen,
 };
-
 use lazy_static::lazy_static;
 
 
@@ -69,9 +66,9 @@ impl Worker {
         .program(&program)
         .name("fill")
         .queue(queue.clone())
-        .arg(&0i32)
-        .arg(&0i32)
+        .arg(&prm::Int2::zero())
         .arg(None::<&ocl::Buffer<u8>>)
+        .arg(&prm::Float3::zero())
         .build()?;
 
         //let objects = scene.create_buffer(&context)?;
@@ -79,10 +76,12 @@ impl Worker {
         Ok(Self { kernel, queue })
     }
 
-    pub fn render(&self, screen: &mut Screen) -> crate::Result<()> {
-        self.kernel.set_arg(0, &(screen.dims().0 as i32))?;
-        self.kernel.set_arg(1, &(screen.dims().1 as i32))?;
-        self.kernel.set_arg(2, screen.buffer_mut())?;
+    pub fn render(&self, screen: &mut Screen, pos: Vec3<f64>) -> crate::Result<()> {
+        let dims = screen.dims();
+        let dims = prm::Int2::new(dims.0 as i32, dims.1 as i32);
+        self.kernel.set_arg(0, &dims)?;
+        self.kernel.set_arg(1, screen.buffer_mut())?;
+        self.kernel.set_arg(2, &prm::Float3::from(pos.map(|e| e as f32).data))?;
 
         unsafe {
             self.kernel
