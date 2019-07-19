@@ -5,7 +5,9 @@ use regex::{Regex, RegexBuilder, Captures};
 use ocl;
 use ocl_include;
 
-use crate::{Context, Screen};
+use crate::{
+    Context, Screen,
+};
 
 use lazy_static::lazy_static;
 
@@ -28,8 +30,12 @@ impl Worker {
         let queue = context.queue().clone();
 
         // load source
-        let hook = ocl_include::FsHook::new()
+        let fs_hook = ocl_include::FsHook::new()
         .include_dir(&Path::new("../clay-core/ocl-src/"))?;
+        let mem_hook = ocl_include::MemHook::new();
+        let hook = ocl_include::ListHook::new()
+        .add_hook(mem_hook)
+        .add_hook(fs_hook);
         let node = ocl_include::build(&hook, Path::new("main.c")).unwrap();
         let (src, index) = node.collect();
 
@@ -68,6 +74,8 @@ impl Worker {
         .arg(None::<&ocl::Buffer<u8>>)
         .build()?;
 
+        //let objects = scene.create_buffer(&context)?;
+
         Ok(Self { kernel, queue })
     }
 
@@ -79,7 +87,7 @@ impl Worker {
         unsafe {
             self.kernel
             .cmd()
-            .global_work_size(screen.len())
+            .global_work_size(screen.dims())
             .enq()?;
         }
 
