@@ -42,7 +42,6 @@ __kernel void fill(
     float md = INFINITY;
     int mi = -1;
 
-    uchar4 color = (uchar4)(0, 0, 0, 1);
     int i = 0;
     for (i = 0; i < objects_count; ++i) {
         float3 hp;
@@ -59,9 +58,13 @@ __kernel void fill(
         }
     }
     
+    uchar3 color;
     if (mi >= 0) {
-        color = (uchar4)(convert_uchar3(255*mhn), 1);
+        color = convert_uchar3(255*mhn);
+    } else {
+        float z = 0.5f*(r.dir.z + 1.0f);
+        color = convert_uchar3(255.0f*(float3)(z, z, z));
     }
 
-    vstore4(color, idx, screen);
+    vstore3(color, idx, screen);
 }

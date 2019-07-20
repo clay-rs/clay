@@ -17,7 +17,7 @@ impl Screen {
         let bytes = ocl::Buffer::<u8>::builder()
         .queue(context.queue().clone())
         .flags(ocl::flags::MEM_WRITE_ONLY)
-        .len(4*len)
+        .len(3*len)
         .fill_val(0 as u8)
         .build()?;
 
