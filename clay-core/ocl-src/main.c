@@ -11,7 +11,8 @@ float2 ptos(int2 pos, int2 size) {
 __kernel void fill(
     int2 size,
     __global uchar *screen,
-    float3 view,
+    float3 view_pos,
+    float16 view_map,
     
     __global int *objects_int,
     __global float *objects_float,
@@ -28,8 +29,12 @@ __kernel void fill(
 
     float2 v = ptos(pos, size);
     Ray r;
-    r.start = view;
-    r.dir = normalize((float3)(v, -1.0f));
+    r.start = view_pos;
+    r.dir = normalize(
+        v.x*(float3)(view_map.s0, view_map.s1, view_map.s2) +
+        v.y*(float3)(view_map.s4, view_map.s5, view_map.s6) +
+        -1.0f*(float3)(view_map.s8, view_map.s9, view_map.sa)
+    );
     r.color = (float3)(1.0f, 1.0f, 1.0f);
 
     float3 mhp;
