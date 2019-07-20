@@ -8,10 +8,10 @@ pub trait Pack {
     /// Write an object into int and float buffers.
     ///
     /// Buffers *must* be of size greater or equal to object's one.
-    fn pack(&self, buffer_int: &mut [u32], buffer_float: &mut [f32]);
+    fn pack(&self, buffer_int: &mut [i32], buffer_float: &mut [f32]);
 
     /// Read an object from int and float buffers.
     ///
     /// Buffers *must* be of size greater or equal to object's one.
-    fn unpack(buffer_int: &[u32], buffer_float: &[f32]) -> Self;
+    fn unpack(buffer_int: &[i32], buffer_float: &[f32]) -> Self;
 }

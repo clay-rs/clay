@@ -1,10 +1,14 @@
-use std::path::Path;
+use std::{
+    path::Path,
+};
 use regex::{Regex, RegexBuilder, Captures};
 use ocl::{self, prm};
 use ocl_include;
 use vecmat::vec::*;
 use crate::{
-    Context, Screen,
+    Context, Screen, Pack,
+    buffer::ObjectBuffer,
+    geometry::Sphere,
 };
 use lazy_static::lazy_static;
 
@@ -33,7 +37,7 @@ impl Worker {
         let hook = ocl_include::ListHook::new()
         .add_hook(mem_hook)
         .add_hook(fs_hook);
-        let node = ocl_include::build(&hook, Path::new("main.c")).unwrap();
+        let node = ocl_include::build(&hook, Path::new("main.c"))?;
         let (src, index) = node.collect();
 
         // build program
@@ -69,19 +73,27 @@ impl Worker {
         .arg(&prm::Int2::zero())
         .arg(None::<&ocl::Buffer<u8>>)
         .arg(&prm::Float3::zero())
+        .arg(None::<&ocl::Buffer<i32>>)
+        .arg(None::<&ocl::Buffer<f32>>)
+        .arg(&0i32)
+        .arg(&0i32)
+        .arg(&0i32)
         .build()?;
-
-        //let objects = scene.create_buffer(&context)?;
 
         Ok(Self { kernel, queue })
     }
 
-    pub fn render(&self, screen: &mut Screen, pos: Vec3<f64>) -> crate::Result<()> {
+    pub fn render(&self, screen: &mut Screen, pos: Vec3<f64>, objects: &ObjectBuffer<Sphere>) -> crate::Result<()> {
         let dims = screen.dims();
         let dims = prm::Int2::new(dims.0 as i32, dims.1 as i32);
         self.kernel.set_arg(0, &dims)?;
         self.kernel.set_arg(1, screen.buffer_mut())?;
         self.kernel.set_arg(2, &prm::Float3::from(pos.map(|e| e as f32).data))?;
+        self.kernel.set_arg(3, objects.buffer_int())?;
+        self.kernel.set_arg(4, objects.buffer_float())?;
+        self.kernel.set_arg(5, Sphere::size_int() as i32)?;
+        self.kernel.set_arg(6, Sphere::size_float() as i32)?;
+        self.kernel.set_arg(7, objects.count() as i32)?;
 
         unsafe {
             self.kernel
