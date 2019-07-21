@@ -1,5 +1,6 @@
 use std::{
     path::Path,
+    marker::PhantomData,
 };
 use regex::{Regex, RegexBuilder, Captures};
 use ocl::{self, prm};
@@ -9,9 +10,9 @@ use vecmat::{
     mat::*,
 };
 use crate::{
-    Context, Screen, Pack,
+    Geometry,
+    Context, Screen,
     buffer::ObjectBuffer,
-    geometry::Sphere,
 };
 use lazy_static::lazy_static;
 
@@ -24,22 +25,48 @@ lazy_static!{
 
 
 #[allow(dead_code)]
-pub struct Worker {
+pub struct Worker<T: Geometry> {
     kernel: ocl::Kernel,
     queue: ocl::Queue,
+    phantom: PhantomData<T>,
 }
 
-impl Worker {
+impl<T: Geometry> Worker<T> {
+    fn ocl_code() -> String {
+        format!("{}\n{}",
+            T::ocl_hit_code(),
+            format!(
+                "bool hit({}) {{\n\t{}\n}}\n",
+                format!("{}, {}, {}, {}, {}, {}",
+                    "Ray ray",
+                    "__global int *ibuf",
+                    "__global float *fbuf",
+                    "float *dist",
+                    "float3 *point",
+                    "float3 *norm",
+                ),
+                format!("return {}({});",
+                    T::ocl_hit_fn(),
+                    "ray, ibuf, fbuf, dist, point, norm",
+                ),
+            ),
+        )
+    }
+
     pub fn new(context: &Context) -> crate::Result<Self> {
         let queue = context.queue().clone();
 
         // load source
         let fs_hook = ocl_include::FsHook::new()
         .include_dir(&Path::new("../clay-core/ocl-src/"))?;
-        let mem_hook = ocl_include::MemHook::new();
+
+        let mem_hook = ocl_include::MemHook::new()
+        .add_file(&Path::new("gen/worker.h"), Self::ocl_code())?;
+
         let hook = ocl_include::ListHook::new()
         .add_hook(mem_hook)
         .add_hook(fs_hook);
+
         let node = ocl_include::build(&hook, Path::new("main.c"))?;
         let (src, index) = node.collect();
 
@@ -84,10 +111,10 @@ impl Worker {
         .arg(&0i32)
         .build()?;
 
-        Ok(Self { kernel, queue })
+        Ok(Self { kernel, queue, phantom: PhantomData })
     }
 
-    pub fn render(&self, screen: &mut Screen, pos: Vec3<f64>, map: Mat3<f64>, objects: &ObjectBuffer<Sphere>) -> crate::Result<()> {
+    pub fn render(&self, screen: &mut Screen, pos: Vec3<f64>, map: Mat3<f64>, objects: &ObjectBuffer<T>) -> crate::Result<()> {
         let dims = screen.dims();
         let dims = prm::Int2::new(dims.0 as i32, dims.1 as i32);
         self.kernel.set_arg(0, &dims)?;
@@ -103,8 +130,8 @@ impl Worker {
 
         self.kernel.set_arg(4, objects.buffer_int())?;
         self.kernel.set_arg(5, objects.buffer_float())?;
-        self.kernel.set_arg(6, Sphere::size_int() as i32)?;
-        self.kernel.set_arg(7, Sphere::size_float() as i32)?;
+        self.kernel.set_arg(6, T::size_int() as i32)?;
+        self.kernel.set_arg(7, T::size_float() as i32)?;
         self.kernel.set_arg(8, objects.count() as i32)?;
 
         unsafe {

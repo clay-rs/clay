@@ -1,6 +1,6 @@
 use vecmat::vec::*;
 
-use crate::{Pack, Geometry};
+use crate::{Pack, Geometry, Bound};
 
 
 /// Spherical geometry
@@ -10,6 +10,13 @@ pub struct Sphere {
     pub pos: Vec3<f64>,
     /// Radius of the sphere
     pub rad: f64,
+}
+
+impl Sphere {
+    /// OpenCL code associated with the sphere.
+    pub fn ocl_code() -> String {
+        "#include <object/sphere.h>\n".to_string()
+    }
 }
 
 impl Pack for Sphere {
@@ -34,11 +41,19 @@ impl Pack for Sphere {
 }
 
 impl Geometry for Sphere {
-    fn ocl_hit_fn() -> &'static str {
-        "sphere_hit"
+    fn ocl_hit_code() -> String {
+        Self::ocl_code()
     }
+    fn ocl_hit_fn() -> String {
+        "sphere_hit".to_string()
+    }
+}
 
-    fn bounds(&self) -> Option<Sphere> {
-        return Some(self.clone())
+impl Bound for Sphere {
+    fn ocl_bound_code() -> String {
+        Self::ocl_code()
+    }
+    fn ocl_bound_fn() -> String {
+        "sphere_bound".to_string()
     }
 }

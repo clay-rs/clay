@@ -1,5 +1,5 @@
 #include "ray.h"
-#include "object/sphere.h"
+#include "gen/worker.h"
 
 
 float2 ptos(int2 pos, int2 size) {
@@ -14,8 +14,8 @@ __kernel void fill(
     float3 view_pos,
     float16 view_map,
     
-    __global int *objects_int,
-    __global float *objects_float,
+    __global const int *objects_int,
+    __global const float *objects_float,
     int size_int,
     int size_float,
     int objects_count
@@ -23,18 +23,10 @@ __kernel void fill(
     int2 pos = (int2)(get_global_id(0), get_global_id(1));
     int idx = pos.x + pos.y*size.x;
 
-    Sphere s;
-    s.pos = (float3)(0.0f, 0.0f, -10.0f);
-    s.rad = 2.0f;
-
     float2 v = ptos(pos, size);
     Ray r;
     r.start = view_pos;
-    r.dir = normalize(
-        v.x*(float3)(view_map.s0, view_map.s1, view_map.s2) +
-        v.y*(float3)(view_map.s4, view_map.s5, view_map.s6) +
-        -1.0f*(float3)(view_map.s8, view_map.s9, view_map.sa)
-    );
+    r.dir = normalize(v.x*view_map.s012 + v.y*view_map.s456 - 1.0f*view_map.s89a);
     r.color = (float3)(1.0f, 1.0f, 1.0f);
 
     float3 mhp;
@@ -47,8 +39,10 @@ __kernel void fill(
         float3 hp;
         float3 hn;
         float d;
-        Sphere s = sphere_load(objects_int + size_int*i, objects_float + size_float*i);
-        if (sphere_hit(s, r, &d, &hp, &hn)) {
+        
+        __global const int *ibuf = objects_int + size_int*i;
+        __global const float *fbuf = objects_float + size_float*i;
+        if (hit(r, ibuf, fbuf, &d, &hp, &hn)) {
             if (d < md) {
                 md = d;
                 mhp = hp;

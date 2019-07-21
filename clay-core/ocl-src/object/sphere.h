@@ -15,7 +15,14 @@ void sphere_store(Sphere s, __global int *ibuf, __global float *fbuf) {
     fbuf[3] = s.rad;
 }
 
-bool sphere_hit(Sphere s, Ray r, float *d, float3 *p, float3 *n) {
+bool sphere_hit(
+    Ray r,
+    __global const int *ibuf,
+    __global const float *fbuf,
+    float *d, float3 *p, float3 *n
+) {
+    Sphere s = sphere_load(ibuf, fbuf);
+
     float l = dot(s.pos - r.start, r.dir);
     float3 c = r.start + l*r.dir;
     float3 rc = c - s.pos;

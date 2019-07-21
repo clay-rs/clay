@@ -6,7 +6,7 @@ mod pack;
 mod ray;
 pub mod geometry;
 pub mod material;
-pub mod object;
+//pub mod object;
 
 //mod scene;
 
@@ -22,9 +22,9 @@ pub use result::Result;
 pub use pack::Pack;
 pub use ray::Ray;
 
-pub use geometry::Geometry;
+pub use geometry::{Geometry, Bound, Bounded};
 pub use material::Material;
-pub use object::Object;
+//pub use object::Object;
 
 //pub use scene::Scene;
 
