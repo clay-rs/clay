@@ -1,9 +1,9 @@
 use vecmat::vec::*;
 
-use crate::{Pack, Geometry, Bound};
+use crate::{Pack, Shape, Bound};
 
 
-/// Spherical geometry
+/// Spherical shape
 #[derive(Clone, Debug, Default)]
 pub struct Sphere {
     /// Position of the center of the sphere
@@ -40,7 +40,7 @@ impl Pack for Sphere {
     }
 }
 
-impl Geometry for Sphere {
+impl Shape for Sphere {
     fn ocl_hit_code() -> String {
         Self::ocl_code()
     }

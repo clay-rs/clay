@@ -4,11 +4,11 @@ pub mod result;
 mod pack;
 
 mod ray;
-pub mod geometry;
+pub mod shape;
 pub mod material;
-//pub mod object;
+pub mod object;
 
-//mod scene;
+mod scene;
 
 
 mod context;
@@ -22,11 +22,11 @@ pub use result::Result;
 pub use pack::Pack;
 pub use ray::Ray;
 
-pub use geometry::{Geometry, Bound, Bounded};
+pub use shape::{Shape, Bound, Bounded};
 pub use material::Material;
-//pub use object::Object;
+pub use object::Object;
 
-//pub use scene::Scene;
+pub use scene::Scene;
 
 
 pub use context::Context;

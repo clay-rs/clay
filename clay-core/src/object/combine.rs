@@ -1,5 +1,5 @@
-/// Object obtained by covering geometry with material
-pub struct Combined<G: Geometry, M: Material> {
+/// Object obtained by covering shape with material
+pub struct Combined<G: Shape, M: Material> {
     geom: G,
     mat: M,
 }

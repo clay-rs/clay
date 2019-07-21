@@ -1,5 +1,6 @@
-use crate::{Pack, Geometry, Material};
-
+use crate::{Pack, Shape, Material};
 
 /// An abstract object that could be drawn completely.
-pub trait Object: Pack + Geometry + Material {}
+pub trait Object: Pack + Shape + Material {
+    
+}

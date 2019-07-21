@@ -1,4 +1,4 @@
-use crate::{Pack, Geometry};
+use crate::{Pack, Shape};
 
 /// Bounding shape that contains the whole object inside.
 pub trait Bound: Pack {
@@ -8,19 +8,19 @@ pub trait Bound: Pack {
     fn ocl_bound_fn() -> String;
 }
 
-/// The geometry that could be bounded by specified shape.
-pub trait Bounded: Geometry {
+/// The shape that could be bounded by specified shape.
+pub trait Bounded: Shape {
     /// Bounding shape.
     type Bound: Bound;
 
     /// Returns bounding shape instance.
     ///
-    /// If the geometry is borderless and doesn't fit into any bounding shape
+    /// If the shape is borderless and doesn't fit into any bounding shape
     /// then `None` should be returned.
     fn bound(&self) -> Option<Self::Bound>;
 }
 
-impl<T: Bound + Geometry + Clone> Bounded for T {
+impl<T: Bound + Shape + Clone> Bounded for T {
     type Bound = T;
     fn bound(&self) -> Option<Self::Bound> {
         Some(self.clone())

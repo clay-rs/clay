@@ -1,6 +1,6 @@
 use ocl::{Platform, Device};
 use vecmat::vec::*;
-use clay_core::{Context, Worker, buffer::ObjectBuffer, geometry::Sphere};
+use clay_core::{Context, Worker, buffer::ObjectBuffer, shape::Sphere};
 use clay_gui::{Window};
 
 
