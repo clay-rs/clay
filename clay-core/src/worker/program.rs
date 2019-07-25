@@ -7,7 +7,7 @@ use ocl;
 use ocl_include;
 
 use lazy_static::lazy_static;
-use crate::{Context, Shape};
+use crate::{Context, Scene};
 
 
 lazy_static!{
@@ -16,16 +16,16 @@ lazy_static!{
     ).multi_line(true).build().unwrap();
 }
 
-pub struct Program<T: Shape> {
+pub struct Program<S: Scene> {
     source: String,
     index: ocl_include::Index,
-    phantom: PhantomData<T>,
+    phantom: PhantomData<S>,
 }
 
-impl<T: Shape> Program<T> {
+impl<S: Scene> Program<S> {
     fn gen_code() -> String {
         format!("{}\n{}",
-            T::ocl_hit_code(),
+            S::ocl_hit_code(),
             format!(
                 "bool hit({}) {{\n\t{}\n}}\n",
                 format!("{}, {}, {}, {}, {}, {}",
@@ -37,7 +37,7 @@ impl<T: Shape> Program<T> {
                     "float3 *norm",
                 ),
                 format!("return {}({});",
-                    T::ocl_hit_fn(),
+                    S::ocl_hit_fn(),
                     "ray, ibuf, fbuf, dist, point, norm",
                 ),
             ),

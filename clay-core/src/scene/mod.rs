@@ -1,4 +1,5 @@
-pub trait Scene {
-    //fn ocl_src() -> (String, String);
-    //fn create_buffer(&self, context: &Context) -> crate::Result<ObjectBuffer>;
-}
+mod scene;
+mod list_scene;
+
+pub use scene::Scene;
+pub use list_scene::ListScene;
