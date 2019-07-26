@@ -1,8 +1,12 @@
-use crate::worker::{Arg};
+use ocl::{
+    self,
+    builders::KernelBuilder,
+};
+
 
 pub trait Scene {
     fn ocl_trace_code() -> String;
 
-    fn args_def() -> Vec<Box<dyn Arg>>;
-    fn args(&self) -> Vec<Box<dyn Arg>>;
+    fn define_args(kb: &mut KernelBuilder);
+    fn set_args(&self, i: usize, k: &mut ocl::Kernel) -> crate::Result<()>;
 }

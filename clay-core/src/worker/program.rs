@@ -3,7 +3,10 @@ use std::{
     marker::PhantomData,
 };
 use regex::{Regex, RegexBuilder, Captures};
-use ocl;
+use ocl::{
+    self,
+    enums::{ProgramBuildInfo as Pbi, ProgramBuildInfoResult as Pbir},
+};
 use ocl_include;
 
 use lazy_static::lazy_static;
@@ -23,33 +26,12 @@ pub struct Program<S: Scene> {
 }
 
 impl<S: Scene> Program<S> {
-    fn gen_code() -> String {
-        format!("{}\n{}",
-            S::ocl_hit_code(),
-            format!(
-                "bool hit({}) {{\n\t{}\n}}\n",
-                format!("{}, {}, {}, {}, {}, {}",
-                    "Ray ray",
-                    "__global int *ibuf",
-                    "__global float *fbuf",
-                    "float *dist",
-                    "float3 *point",
-                    "float3 *norm",
-                ),
-                format!("return {}({});",
-                    S::ocl_hit_fn(),
-                    "ray, ibuf, fbuf, dist, point, norm",
-                ),
-            ),
-        )
-    }
-
     pub fn new() -> crate::Result<Self> {
         let fs_hook = ocl_include::FsHook::new()
         .include_dir(&Path::new("../clay-core/ocl-src/"))?;
 
         let mem_hook = ocl_include::MemHook::new()
-        .add_file(&Path::new("gen/worker.h"), Self::gen_code())?;
+        .add_file(&Path::new("gen/worker.h"), S::ocl_trace_code())?;
 
         let hook = ocl_include::ListHook::new()
         .add_hook(mem_hook)
@@ -66,6 +48,20 @@ impl<S: Scene> Program<S> {
         .devices(context.device())
         .source(self.source.clone())
         .build(context.context())
+        .and_then(|p| {
+            p.build_info(context.device().clone(), Pbi::BuildLog)
+            .map(|pbi| match pbi {
+                Pbir::BuildLog(s) => s,
+                _ => unreachable!(),
+            })
+            .map(|log| {
+                if log.len() > 0 {
+                    println!("Build log: {}", log);
+                }
+                p
+            })
+            .map_err(|e| e.into())
+        })
         .map_err(|e| {
             let message = LOCATION.replace_all(&e.to_string(), |caps: &Captures| -> String {
                 if &caps[1] == "<kernel>" { Ok(()) } else { Err(()) }

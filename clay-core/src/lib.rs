@@ -1,18 +1,18 @@
 pub mod error; 
 pub mod result;
 
-mod pack;
+pub mod pack;
 
-mod ray;
+pub mod ray;
 pub mod shape;
 pub mod material;
 pub mod object;
 
-mod scene;
+pub mod scene;
 
 
-mod context;
-mod worker;
+pub mod context;
+pub mod worker;
 pub mod buffer;
 
 pub use error::Error;
