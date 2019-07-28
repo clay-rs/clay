@@ -7,7 +7,7 @@ use crate::{
     Shape,
     buffer::ObjectBuffer,
 };
-use super::Scene;
+use crate::{Push, Scene};
 
 pub struct ListScene<T: Shape> {
     objects: Vec<T>,
@@ -29,8 +29,10 @@ impl<T: Shape> Scene for ListScene<T> {
             "#include <scene.h>",
         )
     }
+}
 
-    fn define_args(kb: &mut KernelBuilder) {
+impl<T: Shape> Push for ListScene<T> {
+    fn args_def(kb: &mut KernelBuilder) {
         kb
         .arg(None::<&ocl::Buffer<i32>>)
         .arg(None::<&ocl::Buffer<f32>>)
@@ -38,7 +40,7 @@ impl<T: Shape> Scene for ListScene<T> {
         .arg(0i32)
         .arg(0i32);
     }
-    fn set_args(&self, i: usize, k: &mut ocl::Kernel) -> crate::Result<()> {
+    fn args_set(&self, i: usize, k: &mut ocl::Kernel) -> crate::Result<()> {
         k.set_arg(i + 0, self.buffer.buffer_int())?;
         k.set_arg(i + 1, self.buffer.buffer_float())?;
         k.set_arg(i + 2, T::size_int() as i32)?;

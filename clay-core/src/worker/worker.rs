@@ -36,8 +36,7 @@ impl<S: Scene> Worker<S> {
         .arg(None::<&ocl::Buffer<u8>>)
         .arg(prm::Float3::zero())
         .arg(prm::Float16::zero());
-
-        S::define_args(&mut kb);
+        S::args_def(&mut kb);
 
         let kernel = kb.build()?;
 
@@ -64,7 +63,7 @@ impl<S: Scene> Worker<S> {
         self.kernel.set_arg(2, &prm::Float3::from(pos.map(|e| e as f32).data))?;
         self.kernel.set_arg(3, &prm::Float16::from(map16))?;
 
-        scene.set_args(4, &mut self.kernel)?;
+        scene.args_set(4, &mut self.kernel)?;
 
         unsafe {
             self.kernel

@@ -1,4 +1,4 @@
-/// Something that could be packed to buffers
+/// Something that could be packed to pair of i32 and f32 buffers
 pub trait Pack {
     /// Size of integer part of an object.
     fn size_int() -> usize;

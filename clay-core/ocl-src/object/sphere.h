@@ -1,3 +1,5 @@
+#pragma once
+
 typedef struct {
     float3 pos;
     float rad;

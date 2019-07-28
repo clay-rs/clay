@@ -1,11 +1,13 @@
-#define ARGS_DEF \
+#pragma once
+
+#define SCENE_ARGS_DEF \
     __global const int *objects_int, \
     __global const float *objects_float, \
     int size_int, \
     int size_float, \
     int objects_count
 
-#define ARGS \
+#define SCENE_ARGS \
     objects_int, \
     objects_float, \
     size_int, \
@@ -13,7 +15,7 @@
     objects_count
 
 
-uchar3 trace(
+uchar3 scene_trace(
     Ray r,
     __global const int *objects_int,
     __global const float *objects_float,

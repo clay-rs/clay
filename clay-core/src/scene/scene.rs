@@ -1,12 +1,6 @@
-use ocl::{
-    self,
-    builders::KernelBuilder,
-};
+use crate::Push;
 
 
-pub trait Scene {
+pub trait Scene: Push {
     fn ocl_trace_code() -> String;
-
-    fn define_args(kb: &mut KernelBuilder);
-    fn set_args(&self, i: usize, k: &mut ocl::Kernel) -> crate::Result<()>;
 }

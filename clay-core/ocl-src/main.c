@@ -12,7 +12,7 @@ __kernel void fill(
     __global uchar *screen,
     float3 view_pos,
     float16 view_map,
-    ARGS_DEF
+    SCENE_ARGS_DEF
 ) {
     int2 pos = (int2)(get_global_id(0), get_global_id(1));
     int idx = pos.x + pos.y*size.x;
@@ -23,7 +23,7 @@ __kernel void fill(
     r.dir = normalize(v.x*view_map.s012 + v.y*view_map.s456 - 1.0f*view_map.s89a);
     r.color = (float3)(1.0f, 1.0f, 1.0f);
 
-    uchar3 color = trace(r, ARGS);
+    uchar3 color = scene_trace(r, SCENE_ARGS);
 
     vstore3(color, idx, screen);
 }
