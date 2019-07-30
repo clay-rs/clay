@@ -10,7 +10,7 @@ use ocl::{
 use ocl_include;
 
 use lazy_static::lazy_static;
-use crate::{Context, Scene};
+use crate::{Context, Scene, View};
 
 
 lazy_static!{
@@ -19,19 +19,20 @@ lazy_static!{
     ).multi_line(true).build().unwrap();
 }
 
-pub struct Program<S: Scene> {
+pub struct Program<S: Scene, V: View> {
     source: String,
     index: ocl_include::Index,
-    phantom: PhantomData<S>,
+    phantom: PhantomData<(S, V)>,
 }
 
-impl<S: Scene> Program<S> {
+impl<S: Scene, V: View> Program<S, V> {
     pub fn new() -> crate::Result<Self> {
         let fs_hook = ocl_include::FsHook::new()
         .include_dir(&Path::new("../clay-core/ocl-src/"))?;
 
         let mem_hook = ocl_include::MemHook::new()
-        .add_file(&Path::new("gen/worker.h"), S::ocl_trace_code())?;
+        .add_file(&Path::new("__gen__/scene.h"), S::ocl_trace_code())?
+        .add_file(&Path::new("__gen__/view.h"), V::ocl_emit_code())?;
 
         let hook = ocl_include::ListHook::new()
         .add_hook(mem_hook)

@@ -25,7 +25,7 @@ impl<T: Shape> Scene for ListScene<T> {
     fn ocl_trace_code() -> String {
         format!("{}\n{}\n{}",
             T::ocl_hit_code(),
-            format!("#define hit {}", T::ocl_hit_fn()), 
+            format!("#define __shape_hit__ {}", T::ocl_hit_fn()), 
             "#include <scene.h>",
         )
     }
@@ -47,5 +47,8 @@ impl<T: Shape> Push for ListScene<T> {
         k.set_arg(i + 3, T::size_float() as i32)?;
         k.set_arg(i + 4, self.objects.len() as i32)?;
         Ok(())
+    }
+    fn args_count() -> usize {
+        5
     }
 }

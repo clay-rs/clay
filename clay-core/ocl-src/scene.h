@@ -1,13 +1,13 @@
 #pragma once
 
-#define SCENE_ARGS_DEF \
+#define __SCENE_ARGS_DEF__ \
     __global const int *objects_int, \
     __global const float *objects_float, \
     int size_int, \
     int size_float, \
     int objects_count
 
-#define SCENE_ARGS \
+#define __SCENE_ARGS__ \
     objects_int, \
     objects_float, \
     size_int, \
@@ -15,13 +15,9 @@
     objects_count
 
 
-uchar3 scene_trace(
+uchar3 __scene_trace__(
     Ray r,
-    __global const int *objects_int,
-    __global const float *objects_float,
-    int size_int,
-    int size_float,
-    int objects_count
+    __SCENE_ARGS_DEF__
 ) {
     float3 mhp;
     float3 mhn;
@@ -36,7 +32,7 @@ uchar3 scene_trace(
         
         __global const int *ibuf = objects_int + size_int*i;
         __global const float *fbuf = objects_float + size_float*i;
-        if (hit(r, ibuf, fbuf, &d, &hp, &hn)) {
+        if (__shape_hit__(r, ibuf, fbuf, &d, &hp, &hn)) {
             if (d < md) {
                 md = d;
                 mhp = hp;
