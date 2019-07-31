@@ -1,36 +1,25 @@
-use vecmat::vec::*;
-
 use crate::{pack::*, Shape, Bound};
 
 
 /// Spherical shape
 #[derive(Clone, Debug, Default)]
-pub struct Sphere {
-    /// Position of the center of the sphere
-    pub pos: Vec3<f64>,
-    /// Radius of the sphere
-    pub rad: f64,
-}
+pub struct Sphere {}
 
 impl Sphere {
+    pub fn new() -> Self {
+        Self {}
+    }
+
     /// OpenCL code associated with the sphere.
     pub fn ocl_code() -> String {
-        [
-            format!("#define SPHERE_SIZE_INT {}", Self::size_int()),
-            format!("#define SPHERE_SIZE_FLOAT {}", Self::size_float()),
-            "#include <shape/sphere.h>".to_string(),
-        ].join("\n")
+        "#include <shape/sphere.h>".to_string()
     }
 }
 
 impl Pack for Sphere {
     fn size_int() -> usize { 0 }
-    fn size_float() -> usize { 4 }
-    fn pack_to(&self, buffer_int: &mut [i32], buffer_float: &mut [f32]) {
-        Packer::new(buffer_int, buffer_float)
-        .pack(&self.pos)
-        .pack(&self.rad);
-    }
+    fn size_float() -> usize { 0 }
+    fn pack_to(&self, _buffer_int: &mut [i32], _buffer_float: &mut [f32]) {}
 }
 
 impl Shape for Sphere {

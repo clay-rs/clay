@@ -36,7 +36,7 @@ impl<S: Shape + 'static, M: Material + 'static> Object for Covered<S, M> {
                 "\n__MATERIAL_ARGS_DEF__",
                 ") {",
                 &format!(
-                    "\treturn {}(__MATERIAL_ARGS_DBUF__({}, {}));",
+                    "\treturn {}(__MATERIAL_ARGS_B__({}, {}));",
                     M::ocl_material_fn(), S::size_int(), S::size_float(),
                 ),
                 "}",

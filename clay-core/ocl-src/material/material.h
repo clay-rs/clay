@@ -12,5 +12,5 @@
 #define __MATERIAL_ARGS__ \
     r, p, n, ibuf, fbuf, rr, glow
 
-#define __MATERIAL_ARGS_DBUF__(di, df) \
+#define __MATERIAL_ARGS_B__(di, df) \
     r, p, n, ibuf + (di), fbuf + (df), rr, glow

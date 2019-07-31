@@ -13,8 +13,8 @@ pub use type_hash::*;
 
 pub mod ray;
 pub use ray::{Ray};
-//pub mod map;
-//pub use map::{Map, Mapper};
+pub mod map;
+pub use map::{Map, Mapper};
 pub mod shape;
 pub use shape::{Shape, Bound, Bounded};
 pub mod material;

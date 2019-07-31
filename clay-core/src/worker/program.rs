@@ -1,6 +1,8 @@
 use std::{
     path::Path,
     marker::PhantomData,
+    io::Write,
+    fs::File,
 };
 use regex::{Regex, RegexBuilder, Captures};
 use ocl::{
@@ -40,6 +42,8 @@ impl<S: Scene, V: View> Program<S, V> {
 
         let node = ocl_include::build(&hook, Path::new("main.c"))?;
         let (source, index) = node.collect();
+
+        File::create("kernel.c")?.write_all(source.as_bytes())?;
 
         Ok(Self { source, index, phantom: PhantomData })
     }

@@ -3,13 +3,16 @@
 #define __SHAPE_RET__ bool
 
 #define __SHAPE_ARGS_DEF__ \
-    Ray r, \
+    Ray ray, \
     __global const int *ibuf, \
     __global const float *fbuf, \
-    float *d, float3 *p, float3 *n
+    float *dist, float3 *pos, float3 *norm
 
 #define __SHAPE_ARGS__ \
-    r, ibuf, fbuf, d, p, n
+    ray, ibuf, fbuf, dist, pos, norm
 
-#define __SHAPE_ARGS_DBUF__(di, df) \
-    r, ibuf + (di), fbuf + (df), d, p, n
+#define __SHAPE_ARGS_B__(di, df) \
+    ray, ibuf + (di), fbuf + (df), dist, pos, norm
+
+#define __SHAPE_ARGS_R__(r) \
+    (r), ibuf, fbuf, dist, pos, norm
