@@ -13,10 +13,6 @@ Mirror mirror_load(__global const int *ibuf, __global const float *fbuf) {
     return s;
 }
 
-void mirror_store(Mirror s, __global int *ibuf, __global float *fbuf) {
-    vstore3(s.color, 0, fbuf);
-}
-
 __MATERIAL_RET__ mirror_emit(
     __MATERIAL_ARGS_DEF__
 ) {

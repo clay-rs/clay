@@ -1,14 +1,14 @@
 use ocl::{Platform, Device};
-use vecmat::vec::*;
+use vecmat::{vec::*, mat::*};
 use clay_core::{
     Context, Worker,
-    scene::ListScene, view::ProjView,
-    shape::Sphere, material::Mirror, object::Covered,
+    scene::ListScene, view::ProjView, map::*,
+    shape::*, material::Mirror, object::Covered,
 };
 use clay_gui::{Window};
 
 
-type MirrorSphere = Covered<Sphere, Mirror>;
+type MirrorSphere = Covered<Mapper<Sphere, Affine>, Mirror>;
 type MyScene = ListScene<MirrorSphere>;
 type MyView = ProjView;
 
@@ -19,13 +19,17 @@ fn main() -> Result<(), clay_core::Error> {
     let context = Context::new(platform, device)?;
     let mut worker = Worker::<MyScene, MyView>::new(&context)?;
 
+    let mut ma = Mat3::<f64>::one();
+    ma[(2, 2)] = 0.75;
+    let mut mb = 0.75*Mat3::<f64>::one();
+    mb[(2, 2)] = 1.0;
     let objects = vec![
         MirrorSphere::new(
-            Sphere { pos: Vec3::from(0.0, 5.0, 0.0), rad: 1.0 },
+            Sphere::new().map(Affine::from(ma, Vec3::from(0.0, 5.0, 0.0))),
             Mirror { color: Vec3::from(0.7, 0.7, 0.9) },
         ),
         MirrorSphere::new(
-            Sphere { pos: Vec3::from(2.0, 3.0, 0.0), rad: 0.5 },
+            Sphere::new().map(Affine::from(mb, Vec3::from(2.0, 3.0, 0.0))),
             Mirror { color: Vec3::from(0.9, 0.7, 0.7) },
         ),
     ];

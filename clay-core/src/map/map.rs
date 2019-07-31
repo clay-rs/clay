@@ -11,8 +11,10 @@ pub struct Mapper<S: Shape, M: Map> {
     pub map: M,
 }
 
-impl<S: Shape + 'static, M: Map + 'static> Shape for Mapper<S, M> {
-    
+impl<S: Shape + 'static, M: Map + 'static> Mapper<S, M> {
+    pub fn new(shape: S, map: M) -> Self {
+        Self { shape, map }
+    }
 }
 
 impl<S: Shape + 'static, M: Map + 'static> Shape for Mapper<S, M> {
@@ -20,17 +22,20 @@ impl<S: Shape + 'static, M: Map + 'static> Shape for Mapper<S, M> {
         [
             S::ocl_shape_code(),
             M::ocl_map_code(),
-            [
-                &format!("__SHAPE_RET__ {}(", Self::ocl_shape_fn()),
-                "\t__SHAPE_ARGS_DEF__",
-                ") {"
-            ].join("\n")
+            format!(
+                "MAP_SHAPE_FN_DEF({}, {}, {}, {}, {})",
+                Self::ocl_shape_fn(),
+                S::ocl_shape_fn(),
+                M::ocl_map_pref(),
+                S::size_int(), S::size_float(),
+            ),
         ].join("\n")
     }
-    fn ocl_shape_pref() -> String {
+    fn ocl_shape_fn() -> String {
         format!(
-            "__{}_{:x}__",
+            "__{}_{}_{:x}__",
             S::ocl_shape_fn(),
+            M::ocl_map_pref(),
             Self::type_hash(),
         )
     }
