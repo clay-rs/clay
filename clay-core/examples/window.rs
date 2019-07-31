@@ -31,7 +31,7 @@ fn main() -> Result<(), clay_core::Error> {
     ];
     let scene = MyScene::new(objects, &context)?;
 
-    let mut window = Window::new((800, 600))?;
+    let mut window = Window::new((1000, 800))?;
 
     window.start(&context, |screen, pos, map| {
         let view = ProjView { pos, ori: map };

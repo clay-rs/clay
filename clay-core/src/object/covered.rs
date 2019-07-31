@@ -3,9 +3,10 @@ use std::{
     any::TypeId,
     collections::hash_map::DefaultHasher,
 };
-use crate::{Pack, Shape, Material, Object};
+use crate::{Pack, Packer, Shape, Material, Object};
 
 
+#[derive(Clone, Debug, Default)]
 /// Object obtained by covering shape with material
 pub struct Covered<S: Shape + 'static, M: Material + 'static> {
     pub shape: S,
@@ -70,25 +71,9 @@ impl<S: Shape, M: Material> Pack for Covered<S, M> {
         S::size_float() + M::size_float()
     }
 
-    fn pack(&self, buffer_int: &mut [i32], buffer_float: &mut [f32]) {
-        self.shape.pack(
-            &mut buffer_int[..S::size_int()],
-            &mut buffer_float[..S::size_float()],
-        );
-        self.material.pack(
-            &mut buffer_int[S::size_int()..],
-            &mut buffer_float[S::size_float()..],
-        );
-    }
-    fn unpack(buffer_int: &[i32], buffer_float: &[f32]) -> Self {
-        let shape = S::unpack(
-            &buffer_int[..S::size_int()],
-            &buffer_float[..S::size_int()],
-        );
-        let material = M::unpack(
-            &buffer_int[S::size_int()..],
-            &buffer_float[S::size_int()..],
-        );
-        Self::new(shape, material)
+    fn pack_to(&self, buffer_int: &mut [i32], buffer_float: &mut [f32]) {
+        Packer::new(buffer_int, buffer_float)
+        .pack(&self.shape)
+        .pack(&self.material);
     }
 }
