@@ -1,9 +1,4 @@
-use std::{
-    hash::{Hash, Hasher},
-    any::TypeId,
-    collections::hash_map::DefaultHasher,
-};
-use crate::{Pack, Packer, Shape, Material, Object};
+use crate::{Pack, Packer, TypeHash, Shape, Material, Object};
 
 
 #[derive(Clone, Debug, Default)]
@@ -16,12 +11,6 @@ pub struct Covered<S: Shape + 'static, M: Material + 'static> {
 impl<S: Shape + 'static, M: Material + 'static> Covered<S, M> {
     pub fn new(shape: S, material: M) -> Self {
         Self { shape, material }
-    }
-
-    fn type_hash() -> u64 {
-        let mut hasher = DefaultHasher::new();
-        TypeId::of::<Self>().hash(&mut hasher);
-        hasher.finish()
     }
 
     fn ocl_shape_fn() -> String {
