@@ -2,5 +2,5 @@ use crate::Push;
 
 
 pub trait Scene: Push {
-    fn ocl_trace_code() -> String;
+    fn ocl_scene_code() -> String;
 }

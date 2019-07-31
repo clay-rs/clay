@@ -31,8 +31,8 @@ impl<S: Scene, V: View> Program<S, V> {
         .include_dir(&Path::new("../clay-core/ocl-src/"))?;
 
         let mem_hook = ocl_include::MemHook::new()
-        .add_file(&Path::new("__gen__/scene.h"), S::ocl_trace_code())?
-        .add_file(&Path::new("__gen__/view.h"), V::ocl_emit_code())?;
+        .add_file(&Path::new("__gen__/scene.h"), S::ocl_scene_code())?
+        .add_file(&Path::new("__gen__/view.h"), V::ocl_view_code())?;
 
         let hook = ocl_include::ListHook::new()
         .add_hook(mem_hook)

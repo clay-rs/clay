@@ -13,7 +13,9 @@ __kernel void fill(
     int idx = pos.x + pos.y*size.x;
 
     Ray r = __view_emit__(pos, size, __VIEW_ARGS__);
-    uchar3 color = __scene_trace__(r, __SCENE_ARGS__);
+    float3 color = __scene_trace__(r, __SCENE_ARGS__);
 
-    vstore3(color, idx, screen);
+    uchar3 cc = convert_uchar3(255.0f*clamp(color, 0.0f, 1.0f));
+
+    vstore3(cc, idx, screen);
 }

@@ -61,6 +61,7 @@ impl<T: Pack> ObjectBuffer<T> {
         }
         if T::size_int() == 0 { buffer_int = vec![0]; }
         if T::size_float() == 0 { buffer_float = vec![0.0]; }
+        println!("{:?}", buffer_float);
 
         if buffer_int.len() == self.buffer_int.len() && buffer_float.len() == self.buffer_float.len() {
             self.buffer_int.cmd()

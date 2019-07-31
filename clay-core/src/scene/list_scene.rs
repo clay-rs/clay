@@ -4,34 +4,37 @@ use ocl::{
 };
 use crate::{
     Context,
-    Shape,
+    Object,
     buffer::ObjectBuffer,
 };
 use crate::{Push, Scene};
 
-pub struct ListScene<T: Shape> {
+pub struct ListScene<T: Object> {
     objects: Vec<T>,
     buffer: ObjectBuffer<T>,
 }
 
-impl<T: Shape> ListScene<T> {
+impl<T: Object> ListScene<T> {
     pub fn new(objects: Vec<T>, context: &Context) -> crate::Result<Self> {
         let buffer = ObjectBuffer::new(context, &objects)?;
         Ok(Self { objects, buffer })
     }
 }
 
-impl<T: Shape> Scene for ListScene<T> {
-    fn ocl_trace_code() -> String {
-        format!("{}\n{}\n{}",
-            T::ocl_hit_code(),
-            format!("#define __shape_hit__ {}", T::ocl_hit_fn()), 
-            "#include <scene.h>",
-        )
+impl<T: Object> Scene for ListScene<T> {
+    fn ocl_scene_code() -> String {
+        let obj_fns = T::ocl_object_fn();
+        [
+            T::ocl_object_code(),
+            format!("#define __object_hit__ {}", obj_fns.0),
+            format!("#define __object_emit__ {}", obj_fns.1),
+            "#include <scene.h>".to_string(),
+        ]
+        .join("\n")
     }
 }
 
-impl<T: Shape> Push for ListScene<T> {
+impl<T: Object> Push for ListScene<T> {
     fn args_def(kb: &mut KernelBuilder) {
         kb
         .arg(None::<&ocl::Buffer<i32>>)

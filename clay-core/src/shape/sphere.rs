@@ -15,7 +15,11 @@ pub struct Sphere {
 impl Sphere {
     /// OpenCL code associated with the sphere.
     pub fn ocl_code() -> String {
-        "#include <object/sphere.h>\n".to_string()
+        [
+            format!("#define SPHERE_SIZE_INT {}", Self::size_int()),
+            format!("#define SPHERE_SIZE_FLOAT {}", Self::size_float()),
+            "#include <object/sphere.h>".to_string(),
+        ].join("\n")
     }
 }
 
@@ -41,10 +45,10 @@ impl Pack for Sphere {
 }
 
 impl Shape for Sphere {
-    fn ocl_hit_code() -> String {
+    fn ocl_shape_code() -> String {
         Self::ocl_code()
     }
-    fn ocl_hit_fn() -> String {
+    fn ocl_shape_fn() -> String {
         "sphere_hit".to_string()
     }
 }

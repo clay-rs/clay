@@ -15,8 +15,9 @@
     objects_count
 
 
-uchar3 __scene_trace__(
+float3 scene_trace(
     Ray r,
+    int depth,
     __SCENE_ARGS_DEF__
 ) {
     float3 mhp;
@@ -32,7 +33,7 @@ uchar3 __scene_trace__(
         
         __global const int *ibuf = objects_int + size_int*i;
         __global const float *fbuf = objects_float + size_float*i;
-        if (__shape_hit__(r, ibuf, fbuf, &d, &hp, &hn)) {
+        if (__object_hit__(r, ibuf, fbuf, &d, &hp, &hn)) {
             if (d < md) {
                 md = d;
                 mhp = hp;
@@ -42,12 +43,27 @@ uchar3 __scene_trace__(
         }
     }
     
-    uchar3 color;
-    if (mi >= 0) {
-        color = convert_uchar3(255*mhn);
+    float3 color = (float3)(0.0f);
+    if (mi >= 0 && depth < 4) {
+        Ray rr;
+        float3 glow = (float3)(0.0f);
+        __global const int *ibuf = objects_int + size_int*mi;
+        __global const float *fbuf = objects_float + size_float*mi;
+        int nr = __object_emit__(r, mhp, mhn, ibuf, fbuf, &rr, &glow);
+        if (nr > 0) {
+            color = scene_trace(rr, depth + 1, __SCENE_ARGS__);
+        }
+        color += glow;
     } else {
         float z = 0.5f*(r.dir.z + 1.0f);
-        color = convert_uchar3(255.0f*(float3)(z, z, z));
+        color = r.color*(float3)(z, z, z);
     }
     return color;
+}
+
+float3 __scene_trace__(
+    Ray r,
+    __SCENE_ARGS_DEF__
+) {
+    return scene_trace(r, 0, __SCENE_ARGS__);
 }
