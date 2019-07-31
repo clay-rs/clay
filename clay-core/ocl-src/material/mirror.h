@@ -1,5 +1,7 @@
 #pragma once
 
+#include <material/material.h>
+
 typedef struct {
     float3 color;
 } Mirror;
@@ -15,12 +17,8 @@ void mirror_store(Mirror s, __global int *ibuf, __global float *fbuf) {
     vstore3(s.color, 0, fbuf);
 }
 
-int mirror_emit(
-    Ray r,
-    float3 p, float3 n,
-    __global const int *ibuf,
-    __global const float *fbuf,
-    Ray *rr, float3 *glow
+__MATERIAL_RET__ mirror_emit(
+    __MATERIAL_ARGS_DEF__
 ) {
     Mirror s = mirror_load(ibuf, fbuf);
     rr->start = p;

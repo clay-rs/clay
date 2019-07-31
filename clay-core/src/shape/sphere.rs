@@ -18,7 +18,7 @@ impl Sphere {
         [
             format!("#define SPHERE_SIZE_INT {}", Self::size_int()),
             format!("#define SPHERE_SIZE_FLOAT {}", Self::size_float()),
-            "#include <object/sphere.h>".to_string(),
+            "#include <shape/sphere.h>".to_string(),
         ].join("\n")
     }
 }

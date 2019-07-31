@@ -13,13 +13,15 @@ impl Pack for Affine {
         0
     }
     fn size_float() -> usize {
-        3 + 9 + 9
+        3 + 3*9
     }
     fn pack_to(&self, buffer_int: &mut [i32], buffer_float: &mut [f32]) {
-        let inverse = self.linear.inverse();
+        let inv = self.linear.inverse();
+        let t_inv = self.linear.transpose().inverse();
         Packer::new(buffer_int, buffer_float)
         .pack(&self.shift)
         .pack(&self.linear)
-        .pack(&inverse);
+        .pack(&inv)
+        .pack(&t_inv);
     }
 }

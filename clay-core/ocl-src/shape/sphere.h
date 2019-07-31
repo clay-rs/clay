@@ -1,5 +1,7 @@
 #pragma once
 
+#include <shape/shape.h>
+
 typedef struct {
     float3 pos;
     float rad;
@@ -17,11 +19,8 @@ void sphere_store(Sphere s, __global int *ibuf, __global float *fbuf) {
     fbuf[3] = s.rad;
 }
 
-bool sphere_hit(
-    Ray r,
-    __global const int *ibuf,
-    __global const float *fbuf,
-    float *d, float3 *p, float3 *n
+__SHAPE_RET__ sphere_hit(
+    __SHAPE_ARGS_DEF__
 ) {
     Sphere s = sphere_load(ibuf, fbuf);
 

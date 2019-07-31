@@ -1,16 +1,9 @@
 use crate::{pack::*, TypeHash, Shape};
 
 
-pub struct OclMapFns {
-    abs: String,
-    rel: String,
-    abs_inv: String,
-    rel_inv: String,
-}
-
 pub trait Map: Pack {
     fn ocl_map_code() -> String;
-    fn ocl_map_fns() -> OclMapFns;
+    fn ocl_map_pref() -> String;
 }
 
 pub struct Mapper<S: Shape, M: Map> {
@@ -19,18 +12,24 @@ pub struct Mapper<S: Shape, M: Map> {
 }
 
 impl<S: Shape + 'static, M: Map + 'static> Shape for Mapper<S, M> {
+    
+}
+
+impl<S: Shape + 'static, M: Map + 'static> Shape for Mapper<S, M> {
     fn ocl_shape_code() -> String {
         [
             S::ocl_shape_code(),
             M::ocl_map_code(),
             [
-
+                &format!("__SHAPE_RET__ {}(", Self::ocl_shape_fn()),
+                "\t__SHAPE_ARGS_DEF__",
+                ") {"
             ].join("\n")
         ].join("\n")
     }
-    fn ocl_shape_fn() -> String {
+    fn ocl_shape_pref() -> String {
         format!(
-            "__{}__{:x}__",
+            "__{}_{:x}__",
             S::ocl_shape_fn(),
             Self::type_hash(),
         )

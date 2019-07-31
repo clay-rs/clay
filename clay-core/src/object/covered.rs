@@ -19,7 +19,7 @@ impl<S: Shape + 'static, M: Material + 'static> Covered<S, M> {
 
     fn ocl_material_fn() -> String {
         format!(
-            "__{}__{:x}__",
+            "__{}_{:x}__",
             M::ocl_material_fn(),
             Self::type_hash(),
         )
@@ -32,15 +32,11 @@ impl<S: Shape + 'static, M: Material + 'static> Object for Covered<S, M> {
             S::ocl_shape_code(),
             M::ocl_material_code(),
             [
-                &format!("int {}(", Self::ocl_material_fn()),
-                "\nRay r,",
-                "\nfloat3 p, float3 n,",
-                "\n__global const int *ibuf,",
-                "\n__global const float *fbuf,",
-                "\nRay *rr, float3 *glow",
+                &format!("__MATERIAL_RET__ {}(", Self::ocl_material_fn()),
+                "\n__MATERIAL_ARGS_DEF__",
                 ") {",
                 &format!(
-                    "\treturn {}(r, p, n, ibuf + {}, fbuf + {}, rr, glow);",
+                    "\treturn {}(__MATERIAL_ARGS_DBUF__({}, {}));",
                     M::ocl_material_fn(), S::size_int(), S::size_float(),
                 ),
                 "}",
