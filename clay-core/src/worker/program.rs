@@ -1,8 +1,6 @@
 use std::{
     path::Path,
     marker::PhantomData,
-    io::Write,
-    fs::File,
 };
 use regex::{Regex, RegexBuilder, Captures};
 use ocl::{
@@ -10,7 +8,6 @@ use ocl::{
     enums::{ProgramBuildInfo as Pbi, ProgramBuildInfoResult as Pbir},
 };
 use ocl_include;
-
 use lazy_static::lazy_static;
 use crate::{Context, Scene, View};
 
@@ -43,9 +40,11 @@ impl<S: Scene, V: View> Program<S, V> {
         let node = ocl_include::build(&hook, Path::new("main.c"))?;
         let (source, index) = node.collect();
 
-        File::create("kernel.c")?.write_all(source.as_bytes())?;
-
         Ok(Self { source, index, phantom: PhantomData })
+    }
+
+    pub fn source(&self) -> String {
+        self.source.clone()
     }
 
     pub fn build(&self, context: &Context) -> crate::Result<ocl::Program> {
