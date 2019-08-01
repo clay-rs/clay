@@ -3,12 +3,12 @@ use crate::{Pack, Packer, TypeHash, Shape, Material, Object};
 
 #[derive(Clone, Debug, Default)]
 /// Object obtained by covering shape with material
-pub struct Covered<S: Shape + 'static, M: Material + 'static> {
+pub struct Covered<S: Shape, M: Material> {
     pub shape: S,
     pub material: M,
 }
 
-impl<S: Shape + 'static, M: Material + 'static> Covered<S, M> {
+impl<S: Shape, M: Material> Covered<S, M> {
     pub fn new(shape: S, material: M) -> Self {
         Self { shape, material }
     }
@@ -26,14 +26,14 @@ impl<S: Shape + 'static, M: Material + 'static> Covered<S, M> {
     }
 }
 
-impl<S: Shape + 'static, M: Material + 'static> Object for Covered<S, M> {
+impl<S: Shape, M: Material> Object for Covered<S, M> {
     fn ocl_object_code() -> String {
         [
             S::ocl_shape_code(),
             M::ocl_material_code(),
             [
                 &format!("__MATERIAL_RET__ {}(", Self::ocl_material_fn()),
-                "\n__MATERIAL_ARGS_DEF__",
+                "\t__MATERIAL_ARGS_DEF__",
                 ") {",
                 &format!(
                     "\treturn {}(__MATERIAL_ARGS_B__({}, {}));",

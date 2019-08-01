@@ -12,6 +12,7 @@ use super::{Program};
 
 #[allow(dead_code)]
 pub struct Worker<S: Scene, V: View> {
+    program: Program<S, V>,
     kernel: ocl::Kernel,
     queue: ocl::Queue,
     phantom: PhantomData<(S, V)>,
@@ -21,11 +22,12 @@ impl<S: Scene, V: View> Worker<S, V> {
     pub fn new(context: &Context) -> crate::Result<Self> {
         let queue = context.queue().clone();
 
-        let program = Program::<S, V>::new()?.build(context)?;
+        let program = Program::<S, V>::new()?;
+        let ocl_prog = program.build(context)?;
 
         // build kernel
         let mut kb = ocl::Kernel::builder();
-        kb.program(&program)
+        kb.program(&ocl_prog)
         .name("fill")
         .queue(queue.clone())
         .arg(prm::Int2::zero())
@@ -36,7 +38,11 @@ impl<S: Scene, V: View> Worker<S, V> {
 
         let kernel = kb.build()?;
 
-        Ok(Self { kernel, queue, phantom: PhantomData })
+        Ok(Self { program, kernel, queue, phantom: PhantomData })
+    }
+
+    pub fn program(&self) -> &Program<S, V> {
+        &self.program
     }
 
     pub fn render(
