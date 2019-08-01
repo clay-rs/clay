@@ -8,8 +8,8 @@ use clay_core::{
 use clay_gui::{Window};
 
 
-type MirrorSphere = Covered<Mapper<Sphere, Affine>, Mirror>;
-type MyScene = ListScene<MirrorSphere>;
+type MyShape = Covered<Mapper<Cube, Affine>, Mirror>;
+type MyScene = ListScene<MyShape>;
 type MyView = ProjView;
 
 fn main() -> Result<(), clay_core::Error> {
@@ -24,12 +24,12 @@ fn main() -> Result<(), clay_core::Error> {
     let mut mb = 0.75*Mat3::<f64>::one();
     mb[(2, 2)] = 1.0;
     let objects = vec![
-        MirrorSphere::new(
-            Sphere::new().map(Affine::from(ma, Vec3::from(0.0, 5.0, 0.0))),
+        MyShape::new(
+            Cube::new().map(Affine::from(ma, Vec3::from(0.0, 5.0, 0.0))),
             Mirror { color: Vec3::from(0.7, 0.7, 0.9) },
         ),
-        MirrorSphere::new(
-            Sphere::new().map(Affine::from(mb, Vec3::from(2.0, 3.0, 0.0))),
+        MyShape::new(
+            Cube::new().map(Affine::from(mb, Vec3::from(2.0, 3.0, 0.0))),
             Mirror { color: Vec3::from(0.9, 0.7, 0.7) },
         ),
     ];

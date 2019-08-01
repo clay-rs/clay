@@ -6,13 +6,13 @@
     Ray ray, \
     __global const int *ibuf, \
     __global const float *fbuf, \
-    float *dist, float3 *pos, float3 *norm
+    float *enter, float *exit, float3 *norm
 
 #define __SHAPE_ARGS__ \
-    ray, ibuf, fbuf, dist, pos, norm
+    ray, ibuf, fbuf, enter, exit, norm
 
 #define __SHAPE_ARGS_B__(di, df) \
-    ray, ibuf + (di), fbuf + (df), dist, pos, norm
+    ray, ibuf + (di), fbuf + (df), enter, exit, norm
 
 #define __SHAPE_ARGS_R__(r) \
-    (r), ibuf, fbuf, dist, pos, norm
+    (r), ibuf, fbuf, enter, exit, norm

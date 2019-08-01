@@ -27,9 +27,11 @@ Ray __view_emit__(
     __VIEW_ARGS_DEF__
 ) {
     float2 v = ptos(pos, size);
-    Ray r;
-    r.start = view_pos;
-    r.dir = normalize(v.x*view_map.s012 + v.y*view_map.s456 - 1.0f*view_map.s89a);
-    r.color = (float3)(1.0f, 1.0f, 1.0f);
-    return r;
+    Ray ray = {
+        .start = view_pos,
+        .dir = normalize(v.x*view_map.s012 + v.y*view_map.s456 - 1.0f*view_map.s89a),
+        .color = (float3)(1.0f, 1.0f, 1.0f),
+        .origin = -1,
+    };
+    return ray;
 }

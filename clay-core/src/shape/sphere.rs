@@ -1,11 +1,15 @@
 use crate::{pack::*, Shape, Bound};
 
 
-/// Spherical shape
 #[derive(Clone, Debug, Default)]
+/// Unit sphere - of radius one and centered at the origin.
+///
+/// This shape could be transformed to an arbitrary ellipsoid
+/// by combining with the affine transform (*see `Shape::map()`*).
 pub struct Sphere {}
 
 impl Sphere {
+    /// Creates new unit sphere
     pub fn new() -> Self {
         Self {}
     }

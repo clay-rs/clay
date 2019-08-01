@@ -25,12 +25,14 @@
     __SHAPE_RET__ map_shape_fn(__SHAPE_ARGS_DEF__) { \
         Ray new_ray = ray; \
         new_ray.start = map_pref##_abs_inv(__MAP_ARGS_VB__(ray.start, mdi, mdf)); \
-        new_ray.dir = normalize(map_pref##_rel_inv(__MAP_ARGS_VB__(ray.dir, mdi, mdf))); \
+        float3 new_dir = map_pref##_rel_inv(__MAP_ARGS_VB__(ray.dir, mdi, mdf)); \
+        float lenf = 1.0f/length(new_dir); \
+        new_ray.dir = new_dir*lenf; \
         __SHAPE_RET__ ret = shape_fn(__SHAPE_ARGS_R__(new_ray)); \
         if (ret) { \
-            *pos = map_pref##_abs(__MAP_ARGS_VB__(*pos, mdi, mdf)); \
+            *enter *= lenf; \
+            *exit *= lenf; \
             *norm = normalize(map_pref##_norm(__MAP_ARGS_VB__(*norm, mdi, mdf))); \
-            *dist = dot(*pos - ray.start, ray.dir); \
         } \
         return ret; \
     }
