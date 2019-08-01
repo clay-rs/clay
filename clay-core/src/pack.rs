@@ -74,6 +74,34 @@ impl<'a> Packer<'a> {
     }
 }
 
+
+impl PackInt for i32 {
+    fn size_int() -> usize { 1 }
+    fn pack_int_to(&self, buffer: &mut [i32]) {
+        buffer[0] = *self;
+    }
+}
+impl Pack for i32 {
+    fn size_int() -> usize { 1 }
+    fn size_float() -> usize { 0 }
+    fn pack_to(&self, buffer_int: &mut [i32], _buffer_float: &mut [f32]) {
+        buffer_int[0] = *self;
+    }
+}
+impl PackInt for u32 {
+    fn size_int() -> usize { 1 }
+    fn pack_int_to(&self, buffer: &mut [i32]) {
+        buffer[0] = *self as i32;
+    }
+}
+impl Pack for u32 {
+    fn size_int() -> usize { 1 }
+    fn size_float() -> usize { 0 }
+    fn pack_to(&self, buffer_int: &mut [i32], _buffer_float: &mut [f32]) {
+        buffer_int[0] = *self as i32;
+    }
+}
+
 impl PackFloat for f32 {
     fn size_float() -> usize { 1 }
     fn pack_float_to(&self, buffer: &mut [f32]) {
