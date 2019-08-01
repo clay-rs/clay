@@ -32,6 +32,32 @@ typedef struct {
     (r), ibuf, fbuf, enter, exit, norm
 
 
+__SHAPE_RET__ sphere_hit(
+    __SHAPE_ARGS_DEF__
+) {
+    // t^2 - 2*b*t + c = 0
+    float b = -dot(ray.dir, ray.start);
+    float c = dot(ray.start, ray.start) - 1.0f;
+    float d = b*b - c;
+    if (d < 0.0f) {
+        return false;
+    }
+    d = sqrt(d);
+    float e = b - d;
+    if (e < 0.0f) {
+        return false;
+    }
+    *enter = e;
+    *exit = b + d;
+    *norm = ray.start + ray.dir*e;
+    return true;
+}
+
+
+
+
+
+
 float _hit_norm(float3 near, float3 *norm) {
     bool xy = near.x > near.y;
     bool yz = near.y > near.z;
@@ -81,6 +107,16 @@ __SHAPE_RET__ cube_hit(
     *exit = dist_out;
     *norm = norm_in;
     return true;
+}
+__SHAPE_RET__ __select_6b2a48457dba1740__(__SHAPE_ARGS_DEF__) {
+	int sel_idx = ibuf[0];
+	if (sel_idx == 0) {
+		return sphere_hit(__SHAPE_ARGS_B__(1, 0));
+	} else
+	if (sel_idx == 1) {
+		return cube_hit(__SHAPE_ARGS_B__(1, 0));
+	}
+	return false;
 }
 
 
@@ -176,7 +212,7 @@ __MAP_RET__ affine_norm(__MAP_ARGS_DEF__) {
     matrix3 linear = matrix3_load(fbuf + 3 + 9);
     return matrix3_dot(matrix3_transpose(linear), v);
 }
-MAP_SHAPE_FN_DEF(__cube_hit_affine_4852da00a9acb7de__, cube_hit, affine, 0, 0)
+MAP_SHAPE_FN_DEF(____select_6b2a48457dba1740___affine_baa7bc3e748f8504__, __select_6b2a48457dba1740__, affine, 1, 0)
 
 
 
@@ -218,14 +254,14 @@ __MATERIAL_RET__ mirror_emit(
     rr->color = r.color*s.color;
     return 1;
 }
-__MATERIAL_RET__ __mirror_emit_a835c9f037f2f76f__(
+__MATERIAL_RET__ __mirror_emit_861ad142390de36b__(
 
 __MATERIAL_ARGS_DEF__
 ) {
-	return mirror_emit(__MATERIAL_ARGS_B__(0, 21));
+	return mirror_emit(__MATERIAL_ARGS_B__(1, 21));
 }
-#define __object_hit__ __cube_hit_affine_4852da00a9acb7de__
-#define __object_emit__ __mirror_emit_a835c9f037f2f76f__
+#define __object_hit__ ____select_6b2a48457dba1740___affine_baa7bc3e748f8504__
+#define __object_emit__ __mirror_emit_861ad142390de36b__
 
 
 

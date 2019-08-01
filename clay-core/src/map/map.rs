@@ -1,7 +1,7 @@
 use crate::{pack::*, TypeHash, Shape};
 
 
-pub trait Map: Pack {
+pub trait Map: Pack + Sized + 'static {
     fn ocl_map_code() -> String;
     fn ocl_map_pref() -> String;
 }

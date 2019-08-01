@@ -3,12 +3,16 @@ use vecmat::{vec::*, mat::*};
 use clay_core::{
     Context, Worker,
     scene::ListScene, view::ProjView, map::*,
-    shape::*, material::Mirror, object::Covered,
+    shape::*, shape_select,
+    material::Mirror, object::Covered,
 };
 use clay_gui::{Window};
 
-
-type MyShape = Covered<Mapper<Cube, Affine>, Mirror>;
+shape_select!(MySelect, {
+    Sphere(Sphere),
+    Cube(Cube),
+});
+type MyShape = Covered<Mapper<MySelect, Affine>, Mirror>;
 type MyScene = ListScene<MyShape>;
 type MyView = ProjView;
 
@@ -20,16 +24,16 @@ fn main() -> Result<(), clay_core::Error> {
     let mut worker = Worker::<MyScene, MyView>::new(&context)?;
 
     let mut ma = Mat3::<f64>::one();
-    ma[(2, 2)] = 0.75;
-    let mut mb = 0.75*Mat3::<f64>::one();
+    ma[(2, 2)] = 0.5;
+    let mut mb = 0.5*Mat3::<f64>::one();
     mb[(2, 2)] = 1.0;
     let objects = vec![
         MyShape::new(
-            Cube::new().map(Affine::from(ma, Vec3::from(0.0, 5.0, 0.0))),
+            MySelect::Cube(Cube::new()).map(Affine::from(ma, Vec3::from(0.0, 5.0, 0.0))),
             Mirror { color: Vec3::from(0.7, 0.7, 0.9) },
         ),
         MyShape::new(
-            Cube::new().map(Affine::from(mb, Vec3::from(2.0, 3.0, 0.0))),
+            MySelect::Sphere(Sphere::new()).map(Affine::from(mb, Vec3::from(2.0, 3.0, 0.0))),
             Mirror { color: Vec3::from(0.9, 0.7, 0.7) },
         ),
     ];
