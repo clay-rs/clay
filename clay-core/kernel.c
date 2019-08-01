@@ -5,6 +5,7 @@ typedef struct {
     float3 start;
     float3 dir;
     float3 color;
+    int origin;
 } Ray;
 
 
@@ -19,49 +20,66 @@ typedef struct {
     Ray ray, \
     __global const int *ibuf, \
     __global const float *fbuf, \
-    float *dist, float3 *pos, float3 *norm
+    float *enter, float *exit, float3 *norm
 
 #define __SHAPE_ARGS__ \
-    ray, ibuf, fbuf, dist, pos, norm
+    ray, ibuf, fbuf, enter, exit, norm
 
 #define __SHAPE_ARGS_B__(di, df) \
-    ray, ibuf + (di), fbuf + (df), dist, pos, norm
+    ray, ibuf + (di), fbuf + (df), enter, exit, norm
 
 #define __SHAPE_ARGS_R__(r) \
-    (r), ibuf, fbuf, dist, pos, norm
+    (r), ibuf, fbuf, enter, exit, norm
 
-typedef struct {
-    float3 pos;
-    float rad;
-} Sphere;
 
-Sphere sphere_load(__global const int *ibuf, __global const float *fbuf) {
-    Sphere s;
-    s.pos = (float3)(0.0f);
-    s.rad = 1.0f;
-    return s;
+float _hit_norm(float3 near, float3 *norm) {
+    bool xy = near.x > near.y;
+    bool yz = near.y > near.z;
+    bool xz = near.x > near.z;
+    float dist = 0.0;
+    if (xy && xz) {
+        dist = near.x;
+        norm->x = 1.0f;
+    } else if (yz) {
+        dist = near.y;
+        norm->y = 1.0f;
+    } else {
+        dist = near.z;
+        norm->z = 1.0f;
+    }
+    return dist;
 }
 
-__SHAPE_RET__ sphere_hit(
+
+__SHAPE_RET__ cube_hit(
     __SHAPE_ARGS_DEF__
 ) {
-    Sphere s = sphere_load(ibuf, fbuf);
+    const float3 cmax = (float3)(1.0f);
+    const float3 cmin = (float3)(-1.0f);
 
-    float l = dot(s.pos - ray.start, ray.dir);
-    float3 c = ray.start + l*ray.dir;
-    float3 rc = c - s.pos;
-    float lr2 = dot(rc, rc);
-    float rad2 = s.rad*s.rad;
-    if (lr2 > rad2) {
+    float3 inv_dir = 1.0f/ray.dir;
+
+    float3 vmin = (cmin - ray.start)*inv_dir;
+    float3 vmax = (cmax - ray.start)*inv_dir;
+
+    float3 near = min(vmin, vmax);
+    float3 far = max(vmin, vmax);
+
+    float3 norm_in = (float3)(0.0f);
+    float dist_in = _hit_norm(near, &norm_in);
+    norm_in *= sign(ray.dir);
+
+    float3 norm_out = (float3)(0.0f);
+    float dist_out = -_hit_norm(-far, &norm_out);
+    norm_out *= -sign(ray.dir);
+
+    if (dist_in < 0.0f || dist_in > dist_out) {
         return false;
     }
-    float dl = sqrt(rad2 - lr2);
-    *dist = l - dl;
-    if (*dist < 0.0) {
-        return false;
-    }
-    *pos = c - ray.dir*dl;
-    *norm = (*pos - s.pos)/s.rad;
+
+    *enter = dist_in;
+    *exit = dist_out;
+    *norm = norm_in;
     return true;
 }
 
@@ -121,12 +139,14 @@ float3 matrix3_dot(matrix3 m, float3 v) {
     __SHAPE_RET__ map_shape_fn(__SHAPE_ARGS_DEF__) { \
         Ray new_ray = ray; \
         new_ray.start = map_pref##_abs_inv(__MAP_ARGS_VB__(ray.start, mdi, mdf)); \
-        new_ray.dir = normalize(map_pref##_rel_inv(__MAP_ARGS_VB__(ray.dir, mdi, mdf))); \
+        float3 new_dir = map_pref##_rel_inv(__MAP_ARGS_VB__(ray.dir, mdi, mdf)); \
+        float lenf = 1.0f/length(new_dir); \
+        new_ray.dir = new_dir*lenf; \
         __SHAPE_RET__ ret = shape_fn(__SHAPE_ARGS_R__(new_ray)); \
         if (ret) { \
-            *pos = map_pref##_abs(__MAP_ARGS_VB__(*pos, mdi, mdf)); \
+            *enter *= lenf; \
+            *exit *= lenf; \
             *norm = normalize(map_pref##_norm(__MAP_ARGS_VB__(*norm, mdi, mdf))); \
-            *dist = dot(*pos - ray.start, ray.dir); \
         } \
         return ret; \
     }
@@ -156,7 +176,7 @@ __MAP_RET__ affine_norm(__MAP_ARGS_DEF__) {
     matrix3 linear = matrix3_load(fbuf + 3 + 9);
     return matrix3_dot(matrix3_transpose(linear), v);
 }
-MAP_SHAPE_FN_DEF(__sphere_hit_affine_bcf42a589a78394e__, sphere_hit, affine, 0, 0)
+MAP_SHAPE_FN_DEF(__cube_hit_affine_4852da00a9acb7de__, cube_hit, affine, 0, 0)
 
 
 
@@ -198,14 +218,14 @@ __MATERIAL_RET__ mirror_emit(
     rr->color = r.color*s.color;
     return 1;
 }
-__MATERIAL_RET__ __mirror_emit_ee7fc7421b23d6c9__(
+__MATERIAL_RET__ __mirror_emit_a835c9f037f2f76f__(
 
 __MATERIAL_ARGS_DEF__
 ) {
 	return mirror_emit(__MATERIAL_ARGS_B__(0, 21));
 }
-#define __object_hit__ __sphere_hit_affine_bcf42a589a78394e__
-#define __object_emit__ __mirror_emit_ee7fc7421b23d6c9__
+#define __object_hit__ __cube_hit_affine_4852da00a9acb7de__
+#define __object_emit__ __mirror_emit_a835c9f037f2f76f__
 
 
 
@@ -225,56 +245,62 @@ __MATERIAL_ARGS_DEF__
 
 
 float3 scene_trace(
-    Ray r,
+    Ray ray,
     int depth,
     __SCENE_ARGS_DEF__
 ) {
-    float3 mhp;
-    float3 mhn;
-    float md = INFINITY;
-    int mi = -1;
+    int hit_idx = -1;
+    float hit_enter = INFINITY;
+    float hit_exit = 0.0f;
+    float3 hit_norm;
 
     int i = 0;
     for (i = 0; i < objects_count; ++i) {
-        float3 hp;
-        float3 hn;
-        float d;
+        float enter, exit;
+        float3 norm;
+
+        if (ray.origin == i) {
+            continue;
+        }
 
         __global const int *ibuf = objects_int + size_int*i;
         __global const float *fbuf = objects_float + size_float*i;
-        if (__object_hit__(r, ibuf, fbuf, &d, &hp, &hn)) {
-            if (d < md) {
-                md = d;
-                mhp = hp;
-                mhn = hn;
-                mi = i;
+        if (__object_hit__(ray, ibuf, fbuf, &enter, &exit, &norm)) {
+            if (enter < hit_enter) {
+                hit_enter = enter;
+                hit_exit = exit;
+                hit_norm = norm;
+                hit_idx = i;
             }
         }
     }
 
     float3 color = (float3)(0.0f);
-    if (mi >= 0 && depth < 4) {
-        Ray rr;
+    if (hit_idx >= 0 && depth < 4) {
+        Ray new_ray;
         float3 glow = (float3)(0.0f);
-        __global const int *ibuf = objects_int + size_int*mi;
-        __global const float *fbuf = objects_float + size_float*mi;
-        int nr = __object_emit__(r, mhp, mhn, ibuf, fbuf, &rr, &glow);
-        if (nr > 0) {
-            color = scene_trace(rr, depth + 1, __SCENE_ARGS__);
-        }
+        float3 hit_pos = ray.start + ray.dir*hit_enter;
+
+        __global const int *ibuf = objects_int + size_int*hit_idx;
+        __global const float *fbuf = objects_float + size_float*hit_idx;
+        int num_rays = __object_emit__(ray, hit_pos, hit_norm, ibuf, fbuf, &new_ray, &glow);
+        new_ray.origin = hit_idx;
         color += glow;
+        if (num_rays > 0) {
+            color += scene_trace(new_ray, depth + 1, __SCENE_ARGS__);
+        }
     } else {
-        float z = 0.5f*(r.dir.z + 1.0f);
-        color = r.color*(float3)(z, z, z);
+        float z = 0.5f*(ray.dir.z + 1.0f);
+        color = ray.color*(float3)(z, z, z);
     }
     return color;
 }
 
 float3 __scene_trace__(
-    Ray r,
+    Ray ray,
     __SCENE_ARGS_DEF__
 ) {
-    return scene_trace(r, 0, __SCENE_ARGS__);
+    return scene_trace(ray, 0, __SCENE_ARGS__);
 }
 
 
@@ -307,11 +333,13 @@ Ray __view_emit__(
     __VIEW_ARGS_DEF__
 ) {
     float2 v = ptos(pos, size);
-    Ray r;
-    r.start = view_pos;
-    r.dir = normalize(v.x*view_map.s012 + v.y*view_map.s456 - 1.0f*view_map.s89a);
-    r.color = (float3)(1.0f, 1.0f, 1.0f);
-    return r;
+    Ray ray = {
+        .start = view_pos,
+        .dir = normalize(v.x*view_map.s012 + v.y*view_map.s456 - 1.0f*view_map.s89a),
+        .color = (float3)(1.0f, 1.0f, 1.0f),
+        .origin = -1,
+    };
+    return ray;
 }
 
 
@@ -324,8 +352,8 @@ __kernel void fill(
     int2 pos = (int2)(get_global_id(0), get_global_id(1));
     int idx = pos.x + pos.y*size.x;
 
-    Ray r = __view_emit__(pos, size, __VIEW_ARGS__);
-    float3 color = __scene_trace__(r, __SCENE_ARGS__);
+    Ray ray = __view_emit__(pos, size, __VIEW_ARGS__);
+    float3 color = __scene_trace__(ray, __SCENE_ARGS__);
 
     uchar3 cc = convert_uchar3(255.0f*clamp(color, 0.0f, 1.0f));
 

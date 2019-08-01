@@ -2,37 +2,24 @@
 
 #include <shape/shape.h>
 
-typedef struct {
-    float3 pos;
-    float rad;
-} Sphere;
-
-Sphere sphere_load(__global const int *ibuf, __global const float *fbuf) {
-    Sphere s;
-    s.pos = (float3)(0.0f);
-    s.rad = 1.0f;
-    return s;
-}
 
 __SHAPE_RET__ sphere_hit(
     __SHAPE_ARGS_DEF__
 ) {
-    Sphere s = sphere_load(ibuf, fbuf);
-
-    float l = dot(s.pos - ray.start, ray.dir);
-    float3 c = ray.start + l*ray.dir;
-    float3 rc = c - s.pos;
-    float lr2 = dot(rc, rc);
-    float rad2 = s.rad*s.rad;
-    if (lr2 > rad2) {
+    // t^2 - 2*b*t + c = 0
+    float b = -dot(ray.dir, ray.start);
+    float c = dot(ray.start, ray.start) - 1.0f;
+    float d = b*b - c;
+    if (d < 0.0f) {
         return false;
     }
-    float dl = sqrt(rad2 - lr2);
-    *dist = l - dl;
-    if (*dist < 0.0) {
+    d = sqrt(d);
+    float e = b - d;
+    if (e < 0.0f) {
         return false;
     }
-    *pos = c - ray.dir*dl;
-    *norm = (*pos - s.pos)/s.rad;
+    *enter = e;
+    *exit = b + d;
+    *norm = ray.start + ray.dir*e;
     return true;
 }
