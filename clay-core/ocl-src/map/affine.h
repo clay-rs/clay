@@ -1,7 +1,7 @@
 #pragma once
 
-#include <matrix.h>
-#include <map/map.h>
+#include <clay_core/matrix.h>
+#include "map.h"
 
 
 __MAP_RET__ affine_rel(__MAP_ARGS_DEF__) {

@@ -28,7 +28,7 @@ impl<T: Object> Scene for ListScene<T> {
             T::ocl_object_code(),
             format!("#define __object_hit__ {}", obj_fns.0),
             format!("#define __object_emit__ {}", obj_fns.1),
-            "#include <scene.h>".to_string(),
+            "#include <clay_core/scene/list_scene.h>".to_string(),
         ]
         .join("\n")
     }

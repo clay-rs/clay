@@ -1,7 +1,5 @@
 #pragma once
 
-#include <map/map.h>
-
 #define __MAP_RET__ float3
 
 #define __MAP_ARGS_DEF__ \

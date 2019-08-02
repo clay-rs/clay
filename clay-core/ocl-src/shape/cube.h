@@ -1,6 +1,6 @@
 #pragma once
 
-#include <shape/shape.h>
+#include "shape.h"
 
 
 float _cube_hit_nearest(float3 near, float3 *norm) {

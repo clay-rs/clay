@@ -1,6 +1,6 @@
 #pragma once
 
-#include <material/material.h>
+#include "material.h"
 
 typedef struct {
     float3 color;

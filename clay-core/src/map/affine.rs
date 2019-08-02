@@ -6,7 +6,7 @@ pub type Affine = Affine3<f64>;
 
 impl Map for Affine {
     fn ocl_map_code() -> String {
-        "#include <map/affine.h>".to_string()
+        "#include <clay_core/map/affine.h>".to_string()
     }
     fn ocl_map_pref() -> String {
         "affine".to_string()
