@@ -1,7 +1,7 @@
 use crate::{pack::*, Shape};
 
 
-/// Unit cube - centered at the origin and of edge length one.
+/// Unit cube - centered at the origin and of edge length two.
 ///
 /// This shape could be transformed to an arbitrary parallelepiped
 /// by combining with the affine transform  (*see `Shape::map()`*).

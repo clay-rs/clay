@@ -3,15 +3,15 @@ use crate::{pack::*, Material};
 
 #[derive(Clone, Debug, Default)]
 pub struct Mirror {
-	pub color: Vec3<f64>,
+    pub color: Vec3<f64>,
 }
 
 impl Material for Mirror {
     fn ocl_material_code() -> String {
-    	"#include <material/mirror.h>".to_string()
+        "#include <material/mirror.h>".to_string()
     }
     fn ocl_material_fn() -> String {
-    	"mirror_emit".to_string()
+        "mirror_emit".to_string()
     }
 }
 

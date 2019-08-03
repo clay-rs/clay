@@ -8,13 +8,13 @@ pub struct ProjView {
 }
 
 impl View for ProjView {
-	fn ocl_view_code() -> String {
-		"#include <view.h>\n".to_string()
-	}
+    fn ocl_view_code() -> String {
+        "#include <view.h>\n".to_string()
+    }
 }
 
 impl Push for ProjView {
-	fn args_def(kb: &mut KernelBuilder) {
+    fn args_def(kb: &mut KernelBuilder) {
         kb
         .arg(prm::Float3::zero())
         .arg(prm::Float16::zero());

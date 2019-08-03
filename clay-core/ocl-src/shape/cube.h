@@ -25,8 +25,8 @@ float _cube_hit_nearest(float3 near, float3 *norm) {
 __SHAPE_RET__ cube_hit(
     __SHAPE_ARGS_DEF__
 ) {
-    const float3 cmax = (float3)(0.5f);
-    const float3 cmin = (float3)(-0.5f);
+    const float3 cmax = (float3)(1.0f);
+    const float3 cmin = (float3)(-1.0f);
 
     float3 inv_dir = 1.0f/ray.dir;
 
