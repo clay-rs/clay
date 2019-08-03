@@ -21,7 +21,7 @@ type MyShape = Covered<Mapper<MySelect, Affine>, Mirror>;
 type MyScene = ListScene<MyShape>;
 type MyView = ProjView;
 
-fn main() -> Result<(), clay_core::Error> {
+fn main_() -> Result<(), clay_core::Error> {
     let platform = Platform::default();
     let device = Device::first(platform)?;
 
@@ -73,4 +73,11 @@ fn main() -> Result<(), clay_core::Error> {
     })?;
 
     Ok(())
+}
+
+fn main() {
+    match main_() {
+        Ok(()) => (),
+        Err(err) => panic!("{}", err),
+    } 
 }

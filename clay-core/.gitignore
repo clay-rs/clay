@@ -1,4 +1,8 @@
 /target
 **/*.rs.bk
 Cargo.lock
+<<<<<<< HEAD
 __gen__*
+=======
+kernel.c
+>>>>>>> d3842d59ca7e50d141b94d5640fffa6069e6b600

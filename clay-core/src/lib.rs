@@ -27,6 +27,8 @@ pub use scene::*;
 pub mod view;
 pub use view::*;
 
+pub mod ocl_src;
+pub use ocl_src::{get_ocl_src};
 pub mod context;
 pub use context::{Context};
 pub mod worker;

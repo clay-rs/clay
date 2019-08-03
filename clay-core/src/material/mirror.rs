@@ -8,7 +8,7 @@ pub struct Mirror {
 
 impl Material for Mirror {
     fn ocl_material_code() -> String {
-        "#include <material/mirror.h>".to_string()
+    	"#include <clay_core/material/mirror.h>".to_string()
     }
     fn ocl_material_fn() -> String {
         "mirror_emit".to_string()

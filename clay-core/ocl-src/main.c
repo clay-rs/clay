@@ -1,6 +1,6 @@
-#include "ray.h"
-#include "__gen__/scene.h"
-#include "__gen__/view.h"
+#include <clay_core/ray.h>
+#include <__gen__/scene.h>
+#include <__gen__/view.h>
 
 
 __kernel void fill(

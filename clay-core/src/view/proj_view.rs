@@ -8,9 +8,9 @@ pub struct ProjView {
 }
 
 impl View for ProjView {
-    fn ocl_view_code() -> String {
-        "#include <view.h>\n".to_string()
-    }
+	fn ocl_view_code() -> String {
+		"#include <clay_core/view/proj_view.h>\n".to_string()
+	}
 }
 
 impl Push for ProjView {

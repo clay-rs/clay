@@ -1,4 +1,4 @@
-#include "ray.h"
+#include <clay_core/ray.h>
 
 
 typedef struct {

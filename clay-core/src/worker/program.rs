@@ -9,7 +9,7 @@ use ocl::{
 };
 use ocl_include;
 use lazy_static::lazy_static;
-use crate::{Context, Scene, View};
+use crate::{Context, Scene, View, get_ocl_src};
 
 
 lazy_static!{
@@ -26,18 +26,19 @@ pub struct Program<S: Scene, V: View> {
 
 impl<S: Scene, V: View> Program<S, V> {
     pub fn new() -> crate::Result<Self> {
-        let fs_hook = ocl_include::FsHook::new()
-        .include_dir(&Path::new("../clay-core/ocl-src/"))?;
+        let fs_hook = get_ocl_src();
 
-        let mem_hook = ocl_include::MemHook::new()
+        let mem_hook = ocl_include::MemHook::builder()
         .add_file(&Path::new("__gen__/scene.h"), S::ocl_scene_code())?
-        .add_file(&Path::new("__gen__/view.h"), V::ocl_view_code())?;
+        .add_file(&Path::new("__gen__/view.h"), V::ocl_view_code())?
+        .build();
 
-        let hook = ocl_include::ListHook::new()
+        let hook = ocl_include::ListHook::builder()
         .add_hook(mem_hook)
-        .add_hook(fs_hook);
+        .add_hook(fs_hook)
+        .build();
 
-        let node = ocl_include::build(&hook, Path::new("main.c"))?;
+        let node = ocl_include::build(&hook, Path::new("clay_core/main.c"))?;
         let (source, index) = node.collect();
 
         Ok(Self { source, index, phantom: PhantomData })

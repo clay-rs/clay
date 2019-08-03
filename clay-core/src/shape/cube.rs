@@ -16,7 +16,7 @@ impl Cube {
 
     /// OpenCL code associated with the cube.
     pub fn ocl_code() -> String {
-        "#include <shape/cube.h>".to_string()
+        "#include <clay_core/shape/cube.h>".to_string()
     }
 }
 

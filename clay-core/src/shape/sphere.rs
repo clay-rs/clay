@@ -16,7 +16,7 @@ impl Sphere {
 
     /// OpenCL code associated with the sphere.
     pub fn ocl_code() -> String {
-        "#include <shape/sphere.h>".to_string()
+        "#include <clay_core/shape/sphere.h>".to_string()
     }
 }
 
