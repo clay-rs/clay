@@ -7,10 +7,10 @@
     float3 p, float3 n, \
     __global const int *ibuf, \
     __global const float *fbuf, \
-    Ray *rr, float3 *glow
+    Ray *rr, float3 *color
 
 #define __MATERIAL_ARGS__ \
-    r, p, n, ibuf, fbuf, rr, glow
+    r, p, n, ibuf, fbuf, rr, color
 
 #define __MATERIAL_ARGS_B__(di, df) \
-    r, p, n, ibuf + (di), fbuf + (df), rr, glow
+    r, p, n, ibuf + (di), fbuf + (df), rr, color
