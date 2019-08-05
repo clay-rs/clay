@@ -17,7 +17,7 @@ shape_select!(MySelect, {
     Sphere(Sphere),
     Cube(Cube),
 });
-type MyShape = Covered<Mapper<MySelect, Affine>, Colored<Reflective>>;
+type MyShape = Covered<Mapper<MySelect, Affine>, Colored<Diffuse>>;
 type MyScene = ListScene<MyShape>;
 type MyView = ProjView;
 
@@ -39,28 +39,28 @@ fn main_() -> Result<(), clay_core::Error> {
             ),
             Vec3::from(0.0, 0.0, -0.1)),
         )
-        .cover(Reflective {}.color_with(Vec3::from(0.9, 0.9, 0.9))),
+        .cover(Diffuse {}.color_with(Vec3::from(0.9, 0.9, 0.9))),
         
         MySelect::Cube(Cube::new())
         .map(Affine::from(
             0.5*Mat3::<f64>::one(),
             Vec3::from(1.0, 0.0, 0.5)),
         )
-        .cover(Reflective {}.color_with(Vec3::from(0.5, 0.5, 0.9))),
+        .cover(Diffuse {}.color_with(Vec3::from(0.5, 0.5, 0.9))),
         
         MySelect::Sphere(Sphere::new())
         .map(Affine::from(
             0.5*Mat3::<f64>::one(),
             Vec3::from(0.0, 1.0, 0.5)),
         )
-        .cover(Reflective {}.color_with(Vec3::from(0.9, 0.5, 0.5))),
+        .cover(Diffuse {}.color_with(Vec3::from(0.9, 0.5, 0.5))),
         
         MySelect::Sphere(Sphere::new())
         .map(Affine::from(
             0.25*Mat3::<f64>::one(),
             Vec3::from(0.0, 0.0, 0.25)),
         )
-        .cover(Reflective {}.color_with(Vec3::from(0.5, 0.9, 0.5))),
+        .cover(Diffuse {}.color_with(Vec3::from(0.5, 0.9, 0.5))),
         
     ];
     let scene = MyScene::new(objects, &context)?;

@@ -22,6 +22,7 @@ float2 ptos(int2 pos, int2 size) {
 }
 
 Ray __view_emit__(
+    uint *seed,
     int2 pos,
     int2 size,
     __VIEW_ARGS_DEF__

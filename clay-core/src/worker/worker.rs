@@ -30,8 +30,9 @@ impl<S: Scene, V: View> Worker<S, V> {
         kb.program(&ocl_prog)
         .name("fill")
         .queue(queue.clone())
-        .arg(prm::Int2::zero())
-        .arg(None::<&ocl::Buffer<u8>>);
+        .arg(prm::Int2::zero()) // screen size
+        .arg(None::<&ocl::Buffer<u8>>) // screen
+        .arg(None::<&ocl::Buffer<u32>>); // random
 
         V::args_def(&mut kb);
         S::args_def(&mut kb);
@@ -54,8 +55,9 @@ impl<S: Scene, V: View> Worker<S, V> {
         let dims = screen.dims();
         let dims = prm::Int2::new(dims.0 as i32, dims.1 as i32);
         self.kernel.set_arg(0, &dims)?;
-        self.kernel.set_arg(1, screen.buffer_mut())?;
-        let mut i = 2;
+        self.kernel.set_arg(1, screen.bytes_mut())?;
+        self.kernel.set_arg(2, screen.random_mut())?;
+        let mut i = 3;
 
         view.args_set(i, &mut self.kernel)?;
         i += V::args_count();

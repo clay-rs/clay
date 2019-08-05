@@ -38,11 +38,11 @@ __SHAPE_RET__ cube_hit(
 
     float3 norm_in = (float3)(0.0f);
     float dist_in = _cube_hit_nearest(near, &norm_in);
-    norm_in *= sign(ray.dir);
+    norm_in *= -sign(ray.dir);
 
     float3 norm_out = (float3)(0.0f);
     float dist_out = -_cube_hit_nearest(-far, &norm_out);
-    norm_out *= -sign(ray.dir);
+    norm_out *= sign(ray.dir);
 
     if (dist_in < 0.0f || dist_in > dist_out) {
         return false;
