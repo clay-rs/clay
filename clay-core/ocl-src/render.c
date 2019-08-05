@@ -3,9 +3,9 @@
 #include <__gen__/view.h>
 
 
-__kernel void fill(
+__kernel void render(
     int2 size,
-    __global uchar *screen,
+    __global float *color_buffer,
     __global uint *random,
     __VIEW_ARGS_DEF__,
     __SCENE_ARGS_DEF__
@@ -18,8 +18,5 @@ __kernel void fill(
     float3 color = __scene_trace__(&seed, ray, __SCENE_ARGS__);
 
     random[idx] = seed;
-
-    uchar3 cc = convert_uchar3(255.0f*clamp(color, 0.0f, 1.0f));
-
-    vstore3(cc, idx, screen);
+    vstore3(vload3(idx, color_buffer) + color, idx, color_buffer);
 }

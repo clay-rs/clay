@@ -14,7 +14,7 @@
     size_float, \
     objects_count
 
-#define MAX_DEPTH 8
+#define MAX_DEPTH 4
 
 int scene_trace(
     uint *seed,

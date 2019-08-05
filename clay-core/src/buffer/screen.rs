@@ -6,7 +6,7 @@ use crate::Context;
 pub struct Screen {
     random: ocl::Buffer<u32>,
     color: ocl::Buffer<f32>,
-    passes: usize,
+    n_passes: usize,
     bytes: ocl::Buffer<u8>,
     dims: (usize, usize),
 }
@@ -44,7 +44,7 @@ impl Screen {
 
         Ok(Screen {
             random,
-            color, passes: 0,
+            color, n_passes: 0,
             bytes, dims,
         })
     }
@@ -59,6 +59,19 @@ impl Screen {
 
         Ok(vec)
     }
+
+    pub fn pass(&mut self) {
+        self.n_passes += 1;
+    }
+    pub fn clear(&mut self) -> crate::Result<()> {
+        self.color.cmd()
+        .offset(0)
+        .fill(0f32, None)
+        .enq()?;
+
+        self.n_passes = 0;
+        Ok(())
+    }
     
     pub fn random(&self) -> &ocl::Buffer<u32> {
         &self.random
@@ -72,8 +85,8 @@ impl Screen {
     pub fn color_mut(&mut self) -> &mut ocl::Buffer<f32> {
         &mut self.color
     }
-    pub fn passes(&self) -> usize {
-        self.passes
+    pub fn n_passes(&self) -> usize {
+        self.n_passes
     }
     pub fn bytes(&self) -> &ocl::Buffer<u8> {
         &self.bytes

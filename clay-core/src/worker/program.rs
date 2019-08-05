@@ -1,15 +1,14 @@
 use std::{
     path::Path,
-    marker::PhantomData,
 };
 use regex::{Regex, RegexBuilder, Captures};
 use ocl::{
     self,
     enums::{ProgramBuildInfo as Pbi, ProgramBuildInfoResult as Pbir},
 };
-use ocl_include;
+use ocl_include::{self, Hook};
 use lazy_static::lazy_static;
-use crate::{Context, Scene, View, get_ocl_src};
+use crate::{Context};
 
 
 lazy_static!{
@@ -18,30 +17,17 @@ lazy_static!{
     ).multi_line(true).build().unwrap();
 }
 
-pub struct Program<S: Scene, V: View> {
+pub struct Program {
     source: String,
     index: ocl_include::Index,
-    phantom: PhantomData<(S, V)>,
 }
 
-impl<S: Scene, V: View> Program<S, V> {
-    pub fn new() -> crate::Result<Self> {
-        let fs_hook = get_ocl_src();
-
-        let mem_hook = ocl_include::MemHook::builder()
-        .add_file(&Path::new("__gen__/scene.h"), S::ocl_scene_code())?
-        .add_file(&Path::new("__gen__/view.h"), V::ocl_view_code())?
-        .build();
-
-        let hook = ocl_include::ListHook::builder()
-        .add_hook(mem_hook)
-        .add_hook(fs_hook)
-        .build();
-
-        let node = ocl_include::build(&hook, Path::new("clay_core/main.c"))?;
+impl Program {
+    pub fn new<H: Hook>(hook: &H, main: &Path) -> crate::Result<Self> {
+        let node = ocl_include::build(hook, main)?;
         let (source, index) = node.collect();
 
-        Ok(Self { source, index, phantom: PhantomData })
+        Ok(Self { source, index })
     }
 
     pub fn source(&self) -> String {
@@ -72,7 +58,7 @@ impl<S: Scene, V: View> Program<S, V> {
                 if &caps[1] == "<kernel>" { Ok(()) } else { Err(()) }
                 .and_then(|()| caps[2].parse::<usize>().map_err(|_| ()))
                 .and_then(|line| {
-                    // extra `- 1` is a workaround because ocl line numbers is shifted
+                    // extra `- 1` is a workaround because ocl line numbers are shifted
                     self.index.search(line - 1 - 1).ok_or(())
                 })
                 .and_then(|(path, local_line)| {

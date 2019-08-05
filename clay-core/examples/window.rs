@@ -27,7 +27,7 @@ fn main_() -> Result<(), clay_core::Error> {
 
     let context = Context::new(platform, device)?;
     let mut worker = Worker::<MyScene, MyView>::new(&context)?;
-    File::create("__gen__kernel.c")?.write_all(worker.program().source().as_bytes())?;
+    File::create("__gen__kernel.c")?.write_all(worker.programs().render.source().as_bytes())?;
 
     let objects = vec![
         MySelect::Cube(Cube::new())

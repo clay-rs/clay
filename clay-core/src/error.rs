@@ -14,7 +14,7 @@ pub enum Error {
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            Error::Io(e) => write!(f, "Io:\n{}", e),
+            Error::Io(e) => write!(f, "Io: {:?}\n{}", e.kind(), e),
             Error::Ocl(e) => write!(f, "Ocl:\n{}", e),
             Error::Other(s) => write!(f, "Other:\n{}", s),
         }
