@@ -112,6 +112,8 @@ impl<S: Scene, V: View> Worker<S, V> {
             .enq()?;
         }
 
+        self.queue.finish()?;
+
         screen.pass();
 
         let kernel = &mut self.kernels.draw;
@@ -128,6 +130,8 @@ impl<S: Scene, V: View> Worker<S, V> {
             .global_work_size(screen.dims())
             .enq()?;
         }
+
+        self.queue.finish()?;
 
         Ok(())
     }
