@@ -1,4 +1,5 @@
-use crate::Pack;
+use vecmat::vec::*;
+use crate::{Pack, material::Colored};
 
 
 /// Material of an object surface.
@@ -10,4 +11,8 @@ pub trait Material: Pack + Sized + 'static {
     fn ocl_material_code() -> String;
     /// Name of the function from the code that is used to emit secondary rays.
     fn ocl_material_fn() -> String;
+    /// Applies color filter to the material
+    fn color_with(self, color: Vec3<f64>) -> Colored<Self> {
+        Colored::new(self, color)
+    }
 }

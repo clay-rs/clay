@@ -18,7 +18,7 @@ pub use map::{Map, Mapper};
 pub mod shape;
 pub use shape::{Shape, Bound, Bounded};
 pub mod material;
-pub use material::{Material};
+pub use material::{Material, Colored};
 pub mod object;
 pub use object::{Object, Covered};
 

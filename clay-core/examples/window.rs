@@ -8,7 +8,7 @@ use clay_core::{
     Context, Worker,
     scene::ListScene, view::ProjView, map::*,
     shape::*, shape_select,
-    material::Mirror, object::Covered,
+    material::*, object::Covered,
 };
 use clay_gui::{Window};
 
@@ -17,7 +17,7 @@ shape_select!(MySelect, {
     Sphere(Sphere),
     Cube(Cube),
 });
-type MyShape = Covered<Mapper<MySelect, Affine>, Mirror>;
+type MyShape = Covered<Mapper<MySelect, Affine>, Colored<Reflective>>;
 type MyScene = ListScene<MyShape>;
 type MyView = ProjView;
 
@@ -30,38 +30,38 @@ fn main_() -> Result<(), clay_core::Error> {
     File::create("__gen__kernel.c")?.write_all(worker.program().source().as_bytes())?;
 
     let objects = vec![
-        MyShape::new(
-            MySelect::Cube(Cube::new()).map(Affine::from(
-                Mat3::<f64>::from(
-                    5.0, 0.0, 0.0,
-                    0.0, 5.0, 0.0,
-                    0.0, 0.0, 0.1,
-                ),
-                Vec3::from(0.0, 0.0, -0.1)),
+        MySelect::Cube(Cube::new())
+        .map(Affine::from(
+            Mat3::<f64>::from(
+                5.0, 0.0, 0.0,
+                0.0, 5.0, 0.0,
+                0.0, 0.0, 0.1,
             ),
-            Mirror { color: Vec3::from(0.9, 0.9, 0.9) },
-        ),
-        MyShape::new(
-            MySelect::Cube(Cube::new()).map(Affine::from(
-                0.5*Mat3::<f64>::one(),
-                Vec3::from(1.0, 0.0, 0.5)),
-            ),
-            Mirror { color: Vec3::from(0.5, 0.5, 0.9) },
-        ),
-        MyShape::new(
-            MySelect::Sphere(Sphere::new()).map(Affine::from(
-                0.5*Mat3::<f64>::one(),
-                Vec3::from(0.0, 1.0, 0.5)),
-            ),
-            Mirror { color: Vec3::from(0.9, 0.5, 0.5) },
-        ),
-        MyShape::new(
-            MySelect::Sphere(Sphere::new()).map(Affine::from(
-                0.25*Mat3::<f64>::one(),
-                Vec3::from(0.0, 0.0, 0.25)),
-            ),
-            Mirror { color: Vec3::from(0.5, 0.9, 0.5) },
-        ),
+            Vec3::from(0.0, 0.0, -0.1)),
+        )
+        .cover(Reflective {}.color_with(Vec3::from(0.9, 0.9, 0.9))),
+        
+        MySelect::Cube(Cube::new())
+        .map(Affine::from(
+            0.5*Mat3::<f64>::one(),
+            Vec3::from(1.0, 0.0, 0.5)),
+        )
+        .cover(Reflective {}.color_with(Vec3::from(0.5, 0.5, 0.9))),
+        
+        MySelect::Sphere(Sphere::new())
+        .map(Affine::from(
+            0.5*Mat3::<f64>::one(),
+            Vec3::from(0.0, 1.0, 0.5)),
+        )
+        .cover(Reflective {}.color_with(Vec3::from(0.9, 0.5, 0.5))),
+        
+        MySelect::Sphere(Sphere::new())
+        .map(Affine::from(
+            0.25*Mat3::<f64>::one(),
+            Vec3::from(0.0, 0.0, 0.25)),
+        )
+        .cover(Reflective {}.color_with(Vec3::from(0.5, 0.9, 0.5))),
+        
     ];
     let scene = MyScene::new(objects, &context)?;
 

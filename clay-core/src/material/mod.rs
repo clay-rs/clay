@@ -1,5 +1,7 @@
 mod material;
-mod mirror;
+mod colored;
+mod reflective;
 
 pub use material::*;
-pub use mirror::*;
+pub use colored::*;
+pub use reflective::*;
