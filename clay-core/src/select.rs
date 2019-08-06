@@ -1,6 +1,6 @@
 #[macro_export]
 macro_rules! instance_select {
-    ($Select:ident : $Base:tt : $Class:ty, { $( $Enum:ident($Callable:ty) ),+ $(,)? }) => {
+    ($Select:ident : $Base:ty : $Class:ty, { $( $Enum:ident($Callable:ty) ),+ $(,)? }) => {
         pub enum $Select {
             $( $Enum($Callable), )+
         }
@@ -20,6 +20,7 @@ macro_rules! instance_select {
 
             #[allow(unused_assignments)]
             fn method_source(method: &str) -> String {
+                use $crate::class::*;
                 let cpref = <$Class>::name().to_uppercase();
 
                 let mut cases = Vec::new();
@@ -50,10 +51,11 @@ macro_rules! instance_select {
             }
         }
 
-        impl $crate::$Base for $Select {}
+        impl $Base for $Select {}
 
         impl $crate::Instance<$Class> for $Select {
             fn source() -> String {
+                use $crate::class::*;
                 let mut ms = Vec::new();
                 for method in <$Class>::methods().into_iter() {
                     ms.push(Self::method_source(&method));

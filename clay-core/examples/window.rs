@@ -7,17 +7,20 @@ use vecmat::{vec::*, mat::*};
 use clay_core::{
     Context, Worker,
     scene::ListScene, view::ProjView, map::*,
-    class::*, shape::*,
-    material::*, object::Covered,
-    instance_select,
+    shape::*, material::*, object::Covered,
+    shape_select, material_combine,
 };
 use clay_gui::{Window};
 
-instance_select!(MyShape: Shape: ShapeClass, {
+shape_select!(MyShape, {
     Cube(Cube),
     Sphere(Sphere),
 });
-type MyObject = Covered<Mapper<MyShape, Affine>, Colored<Diffuse>>;
+material_combine!(MyMaterial, {
+    reflect: Reflective,
+    diffuse: Colored<Diffuse>,
+});
+type MyObject = Covered<Mapper<MyShape, Affine>, MyMaterial>;
 type MyScene = ListScene<MyObject>;
 type MyView = ProjView;
 
@@ -39,28 +42,40 @@ fn main_() -> Result<(), clay_core::Error> {
             ),
             Vec3::from(0.0, 0.0, -0.1)),
         )
-        .cover(Diffuse {}.color_with(Vec3::from(0.9, 0.9, 0.9))),
+        .cover(MyMaterial::new(
+            (Reflective {}, 0.1),
+            (Diffuse {}.color_with(Vec3::from(0.9, 0.9, 0.9)), 0.9),
+        )),
         
         MyShape::Cube(Cube::new())
         .map(Affine::from(
             0.4*Mat3::<f64>::one(),
             Vec3::from(1.0, 0.0, 0.4)),
         )
-        .cover(Diffuse {}.color_with(Vec3::from(0.5, 0.5, 0.9))),
+        .cover(MyMaterial::new(
+            (Reflective {}, 0.1),
+            (Diffuse {}.color_with(Vec3::from(0.5, 0.5, 0.9)), 0.9),
+        )),
         
         MyShape::Sphere(Sphere::new())
         .map(Affine::from(
             0.5*Mat3::<f64>::one(),
             Vec3::from(0.0, 1.0, 0.5)),
         )
-        .cover(Diffuse {}.color_with(Vec3::from(0.9, 0.5, 0.5))),
+        .cover(MyMaterial::new(
+            (Reflective {}, 0.1),
+            (Diffuse {}.color_with(Vec3::from(0.9, 0.5, 0.5)), 0.9),
+        )),
         
         MyShape::Sphere(Sphere::new())
         .map(Affine::from(
             0.25*Mat3::<f64>::one(),
             Vec3::from(0.0, 0.0, 0.25)),
         )
-        .cover(Diffuse {}.color_with(Vec3::from(0.5, 0.9, 0.5))),
+        .cover(MyMaterial::new(
+            (Reflective {}, 0.1),
+            (Diffuse {}.color_with(Vec3::from(0.5, 0.9, 0.5)), 0.9),
+        )),
         
     ];
     let scene = MyScene::new(objects, &context)?;

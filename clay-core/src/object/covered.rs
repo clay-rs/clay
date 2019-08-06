@@ -1,4 +1,9 @@
-use crate::{Pack, Packer, TypeHash, class::*, Shape, Material, object::*};
+use crate::{
+    Pack, Packer,
+    TypeHash, class::*,
+    shape::*, material::*,
+    object::*,
+};
 
 
 #[derive(Clone, Debug, Default)]
@@ -18,24 +23,25 @@ impl<S: Shape, M: Material> Object for Covered<S, M> {}
 
 impl<S: Shape, M: Material> Instance<ObjectClass> for Covered<S, M> {
     fn source() -> String {
+        let cpref = MaterialClass::name().to_uppercase();
         [
             S::source(),
             M::source(),
             [
-                &format!(
+                format!(
                     "#define {}_hit {}_hit",
                     Self::inst_name(),
                     S::inst_name(),
                 ),
-                "",
-                &format!("MATERIAL_RET {}_emit(", Self::inst_name()),
-                "\tMATERIAL_ARGS_DEF",
-                ") {",
-                &format!(
-                    "\treturn {}_emit(MATERIAL_ARGS_B({}, {}));",
-                    M::inst_name(), S::size_int(), S::size_float(),
+                "".to_string(),
+                format!("{}_RET {}_emit(", cpref, Self::inst_name()),
+                format!("\t{}_ARGS_DEF", cpref),
+                ") {".to_string(),
+                format!(
+                    "\treturn {}_emit({}_ARGS_B({}, {}));",
+                    M::inst_name(), cpref, S::size_int(), S::size_float(),
                 ),
-                "}",
+                "}".to_string(),
             ].join("\n")
         ].join("\n")
     }

@@ -1,9 +1,10 @@
 mod shape;
 pub use shape::*;
-//mod select;
 
 //mod bound;
 //pub use bound::{Bound, Bounded};
+
+mod select;
 
 mod sphere;
 pub use sphere::*;
