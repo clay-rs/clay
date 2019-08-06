@@ -5,10 +5,10 @@ use crate::{pack::*, Map};
 pub type Affine = Affine3<f64>;
 
 impl Map for Affine {
-    fn ocl_map_code() -> String {
+    fn source() -> String {
         "#include <clay_core/map/affine.h>".to_string()
     }
-    fn ocl_map_pref() -> String {
+    fn instance() -> String {
         "affine".to_string()
     }
 }

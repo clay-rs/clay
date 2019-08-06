@@ -1,13 +1,13 @@
 #pragma once
 
-#define __SCENE_ARGS_DEF__ \
+#define SCENE_ARGS_DEF \
     __global const int *objects_int, \
     __global const float *objects_float, \
     int size_int, \
     int size_float, \
     int objects_count
 
-#define __SCENE_ARGS__ \
+#define SCENE_ARGS \
     objects_int, \
     objects_float, \
     size_int, \
@@ -21,7 +21,7 @@ int scene_trace(
     Ray ray,
     Ray *new_ray,
     float3 *color,
-    __SCENE_ARGS_DEF__
+    SCENE_ARGS_DEF
 ) {
     int hit_idx = -1;
     float hit_enter = INFINITY;
@@ -39,7 +39,7 @@ int scene_trace(
         
         __global const int *ibuf = objects_int + size_int*i;
         __global const float *fbuf = objects_float + size_float*i;
-        if (__object_hit__(seed, ray, ibuf, fbuf, &enter, &exit, &norm)) {
+        if (__object_hit(seed, ray, ibuf, fbuf, &enter, &exit, &norm)) {
             if (enter < hit_enter) {
                 hit_enter = enter;
                 hit_exit = exit;
@@ -54,7 +54,7 @@ int scene_trace(
 
         __global const int *ibuf = objects_int + size_int*hit_idx;
         __global const float *fbuf = objects_float + size_float*hit_idx;
-        int num_rays = __object_emit__(seed, ray, hit_pos, hit_norm, ibuf, fbuf, new_ray, color);
+        int num_rays = __object_emit(seed, ray, hit_pos, hit_norm, ibuf, fbuf, new_ray, color);
         if (num_rays > 0) {
             new_ray->origin = hit_idx;
             return 1;
@@ -68,17 +68,17 @@ int scene_trace(
     }
 }
 
-float3 __scene_trace__(
+float3 __scene_trace(
     uint *seed,
     Ray ray,
-    __SCENE_ARGS_DEF__
+    SCENE_ARGS_DEF
 ) {
     float3 color = (float3)(0.0f);
     int i = 0;
     Ray current_ray = ray;
     for (i = 0; i < MAX_DEPTH; ++i) {
         Ray next_ray;
-        int num_rays = scene_trace(seed, current_ray, &next_ray, &color, __SCENE_ARGS__);
+        int num_rays = scene_trace(seed, current_ray, &next_ray, &color, SCENE_ARGS);
         if (num_rays == 0) {
             break;
         }

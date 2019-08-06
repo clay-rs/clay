@@ -5,10 +5,10 @@ use crate::{Map};
 pub type Shift = Vec3<f64>;
 
 impl Map for Shift {
-    fn ocl_map_code() -> String {
+    fn source() -> String {
         "#include <clay_core/map/shift.h>".to_string()
     }
-    fn ocl_map_pref() -> String {
+    fn instance() -> String {
         "shift".to_string()
     }
 }

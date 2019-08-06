@@ -10,13 +10,15 @@ pub mod pack;
 pub use pack::*;
 pub mod type_hash;
 pub use type_hash::*;
+//pub mod select;
+pub mod callable;
 
 pub mod ray;
 pub use ray::{Ray};
 pub mod map;
 pub use map::{Map, Mapper};
 pub mod shape;
-pub use shape::{Shape, Bound, Bounded};
+pub use shape::{Shape};//, Bound, Bounded};
 pub mod material;
 pub use material::{Material, Colored};
 pub mod object;

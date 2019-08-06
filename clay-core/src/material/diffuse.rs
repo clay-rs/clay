@@ -5,11 +5,11 @@ use crate::{pack::*, Material};
 pub struct Diffuse {}
 
 impl Material for Diffuse {
-    fn ocl_material_code() -> String {
+    fn source() -> String {
         "#include <clay_core/material/diffuse.h>".to_string()
     }
-    fn ocl_material_fn() -> String {
-        "diffuse_emit".to_string()
+    fn instance() -> String {
+        "diffuse".to_string()
     }
 }
 

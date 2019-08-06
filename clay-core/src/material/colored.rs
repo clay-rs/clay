@@ -16,32 +16,28 @@ impl<M: Material> Colored<M> {
     pub fn new(material: M, color: Vec3<f64>) -> Self {
         Self { material, color }
     }
-
-    fn ocl_fn() -> String {
-        format!(
-            "__{}_colored_{:x}__",
-            M::ocl_material_fn(),
-            Self::type_hash(),
-        )
-    }
 }
 
 impl<M: Material> Material for Colored<M> {
-    fn ocl_material_code() -> String {
+    fn source() -> String {
         [
-            M::ocl_material_code(),
+            M::source(),
             "#include <clay_core/material/colored.h>".to_string(),
             format!(
-                "__COLORED_MATERIAL_FN_DEF__({}, {}, {}, {})",
-                Self::ocl_fn(),
-                M::ocl_material_fn(),
+                "COLORED_MATERIAL_FN_DEF({}, {}, {}, {})",
+                Self::instance(),
+                M::instance(),
                 M::size_int(),
                 M::size_float(),
             ),
         ].join("\n")
     }
-    fn ocl_material_fn() -> String {
-        Self::ocl_fn()
+    fn instance() -> String {
+        format!(
+            "__{}_colored_{:x}",
+            M::instance(),
+            Self::type_hash(),
+        )
     }
 }
 

@@ -5,11 +5,11 @@ use crate::{pack::*, Material};
 pub struct Reflective {}
 
 impl Material for Reflective {
-    fn ocl_material_code() -> String {
+    fn source() -> String {
     	"#include <clay_core/material/reflective.h>".to_string()
     }
-    fn ocl_material_fn() -> String {
-        "reflective_emit".to_string()
+    fn instance() -> String {
+        "reflective".to_string()
     }
 }
 

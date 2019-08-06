@@ -12,39 +12,33 @@ impl<S: Shape, M: Material> Covered<S, M> {
     pub fn new(shape: S, material: M) -> Self {
         Self { shape, material }
     }
-
-    fn ocl_shape_fn() -> String {
-        S::ocl_shape_fn()
-    }
-
-    fn ocl_material_fn() -> String {
-        format!(
-            "__{}_{:x}__",
-            M::ocl_material_fn(),
-            Self::type_hash(),
-        )
-    }
 }
 
 impl<S: Shape, M: Material> Object for Covered<S, M> {
-    fn ocl_object_code() -> String {
+    fn source() -> String {
         [
-            S::ocl_shape_code(),
-            M::ocl_material_code(),
+            S::source(),
+            M::source(),
             [
-                &format!("__MATERIAL_RET__ {}(", Self::ocl_material_fn()),
-                "\t__MATERIAL_ARGS_DEF__",
+                &format!(
+                    "#define {}_hit {}_hit",
+                    Self::instance(),
+                    S::instance(),
+                ),
+                "",
+                &format!("MATERIAL_RET {}_emit(", Self::instance()),
+                "\tMATERIAL_ARGS_DEF",
                 ") {",
                 &format!(
-                    "\treturn {}(__MATERIAL_ARGS_B__({}, {}));",
-                    M::ocl_material_fn(), S::size_int(), S::size_float(),
+                    "\treturn {}_emit(MATERIAL_ARGS_B({}, {}));",
+                    M::instance(), S::size_int(), S::size_float(),
                 ),
                 "}",
             ].join("\n")
         ].join("\n")
     }
-    fn ocl_object_fn() -> (String, String) {
-        (Self::ocl_shape_fn(), Self::ocl_material_fn())
+    fn instance() -> String {
+        format!("__covered_{:x}", Self::type_hash())
     }
 }
 

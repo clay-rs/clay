@@ -1,4 +1,4 @@
-use crate::{pack::*, Shape, Bound};
+use crate::{pack::*, Shape};//, Bound};
 
 
 #[derive(Clone, Debug, Default)]
@@ -13,11 +13,6 @@ impl Sphere {
     pub fn new() -> Self {
         Self {}
     }
-
-    /// OpenCL code associated with the sphere.
-    pub fn ocl_code() -> String {
-        "#include <clay_core/shape/sphere.h>".to_string()
-    }
 }
 
 impl Pack for Sphere {
@@ -27,14 +22,14 @@ impl Pack for Sphere {
 }
 
 impl Shape for Sphere {
-    fn ocl_shape_code() -> String {
-        Self::ocl_code()
+    fn source() -> String {
+        "#include <clay_core/shape/sphere.h>".to_string()
     }
-    fn ocl_shape_fn() -> String {
-        "sphere_hit".to_string()
+    fn instance() -> String {
+        "sphere".to_string()
     }
 }
-
+/*
 impl Bound for Sphere {
     fn ocl_bound_code() -> String {
         Self::ocl_code()
@@ -43,3 +38,4 @@ impl Bound for Sphere {
         "sphere_bound".to_string()
     }
 }
+*/

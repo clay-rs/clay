@@ -22,12 +22,11 @@ impl<T: Object> ListScene<T> {
 }
 
 impl<T: Object> Scene for ListScene<T> {
-    fn ocl_scene_code() -> String {
-        let obj_fns = T::ocl_object_fn();
+    fn source() -> String {
         [
-            T::ocl_object_code(),
-            format!("#define __object_hit__ {}", obj_fns.0),
-            format!("#define __object_emit__ {}", obj_fns.1),
+            T::source(),
+            format!("#define __object_hit {}_hit", T::instance()),
+            format!("#define __object_emit {}_emit", T::instance()),
             "#include <clay_core/scene/list_scene.h>".to_string(),
         ]
         .join("\n")

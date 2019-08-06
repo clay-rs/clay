@@ -39,8 +39,8 @@ impl<S: Scene, V: View> Worker<S, V> {
             .add_hook(get_ocl_src())
             .add_hook(
                 MemHook::builder()
-                .add_file(&Path::new("__gen__/scene.h"), S::ocl_scene_code())?
-                .add_file(&Path::new("__gen__/view.h"), V::ocl_view_code())?
+                .add_file(&Path::new("__gen/scene.h"), S::source())?
+                .add_file(&Path::new("__gen/view.h"), V::ocl_view_code())?
                 .build()
             )
             .build(),

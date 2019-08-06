@@ -1,10 +1,16 @@
 
+use crate::shape::cube::Cube;
+
+use crate::shape::sphere::Sphere;
+
 #[macro_export]
 macro_rules! shape_select {
     ($Select:ident, { $( $Enum:ident($Shape:ty) ),+ }) => {
         shape_select!($Select, { $( $Enum($Shape) )+ })
     };
     ($Select:ident, { $( $Enum:ident($Shape:ty), )+ }) => {
+        $crate::entity_select!($Select, { $( $Enum($Shape) )+ });
+
         pub enum $Select {
             $( $Enum($Shape), )+
         }
@@ -54,39 +60,18 @@ macro_rules! shape_select {
             fn ocl_shape_code() -> String {
                 [
                     $( <$Shape>::ocl_shape_code(), )+
-                    Self::ocl_code(),
+                    Self::ocl_code(<$Shape>::ocl_shape_fn(), "__SHAPE", "false"),
                 ].join("\n")
             }
             fn ocl_shape_fn() -> String {
-                Self::ocl_fn()
-            }
-        }
-
-        impl $crate::Pack for $Select {
-            fn size_int() -> usize {
-                let sizes = [
-                    $( <$Shape>::size_int(), )+
-                ];
-                1 + *sizes.iter().max().unwrap()
-            }
-            fn size_float() -> usize {
-                let sizes = [
-                    $( <$Shape>::size_float(), )+
-                ];
-                *sizes.iter().max().unwrap()
-            }
-            fn pack_to(&self, mut buffer_int: &mut [i32], buffer_float: &mut [f32]) {
-                use $crate::pack::*;
-                self.index().pack_int_to(buffer_int);
-                buffer_int = &mut buffer_int[1..];
-                $(
-                    if let $Select::$Enum(x) = self {
-                        x.pack_to(buffer_int, buffer_float);
-                        return;
-                    }
-                )+
-                unreachable!()
+                Self::ocl_fn("hit")
             }
         }
     };
 }
+
+
+shape_select!(MySelect, {
+    Sphere(Sphere),
+    Cube(Cube),
+});

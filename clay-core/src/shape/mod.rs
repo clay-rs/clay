@@ -1,9 +1,9 @@
 mod shape;
 pub use shape::Shape;
-mod select;
+//mod select;
 
-mod bound;
-pub use bound::{Bound, Bounded};
+//mod bound;
+//pub use bound::{Bound, Bounded};
 
 mod sphere;
 pub use sphere::Sphere;

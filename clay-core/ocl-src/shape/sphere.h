@@ -3,8 +3,8 @@
 #include "shape.h"
 
 
-__SHAPE_RET__ sphere_hit(
-    __SHAPE_ARGS_DEF__
+SHAPE_RET sphere_hit(
+    SHAPE_ARGS_DEF
 ) {
     // t^2 - 2*b*t + c = 0
     float b = -dot(ray.dir, ray.start);

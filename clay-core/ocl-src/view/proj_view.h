@@ -7,11 +7,11 @@ typedef struct {
     float16 ori;
 } View;
 
-#define __VIEW_ARGS_DEF__ \
+#define VIEW_ARGS_DEF \
     float3 view_pos, \
     float16 view_map
 
-#define __VIEW_ARGS__ \
+#define VIEW_ARGS \
     view_pos, \
     view_map
 
@@ -30,11 +30,11 @@ float2 ptos_rand(uint *seed, int2 pos, int2 size) {
 }
 
 
-Ray __view_emit__(
+Ray __view_emit(
     uint *seed,
     int2 pos,
     int2 size,
-    __VIEW_ARGS_DEF__
+    VIEW_ARGS_DEF
 ) {
     float2 v = ptos_rand(seed, pos, size);
     Ray ray = {

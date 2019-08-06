@@ -13,11 +13,6 @@ impl Cube {
     pub fn new() -> Self {
         Self {}
     }
-
-    /// OpenCL code associated with the cube.
-    pub fn ocl_code() -> String {
-        "#include <clay_core/shape/cube.h>".to_string()
-    }
 }
 
 impl Pack for Cube {
@@ -27,10 +22,10 @@ impl Pack for Cube {
 }
 
 impl Shape for Cube {
-    fn ocl_shape_code() -> String {
-        Self::ocl_code()
+    fn source() -> String {
+        "#include <clay_core/shape/cube.h>".to_string()
     }
-    fn ocl_shape_fn() -> String {
-        "cube_hit".to_string()
+    fn instance() -> String {
+        "cube".to_string()
     }
 }

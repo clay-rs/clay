@@ -7,17 +7,13 @@ use vecmat::{vec::*, mat::*};
 use clay_core::{
     Context, Worker,
     scene::ListScene, view::ProjView, map::*,
-    shape::*, shape_select,
+    shape::*,
     material::*, object::Covered,
 };
 use clay_gui::{Window};
 
 
-shape_select!(MySelect, {
-    Sphere(Sphere),
-    Cube(Cube),
-});
-type MyShape = Covered<Mapper<MySelect, Affine>, Colored<Diffuse>>;
+type MyShape = Covered<Mapper<Cube, Affine>, Colored<Diffuse>>;
 type MyScene = ListScene<MyShape>;
 type MyView = ProjView;
 
@@ -27,10 +23,10 @@ fn main_() -> Result<(), clay_core::Error> {
 
     let context = Context::new(platform, device)?;
     let mut worker = Worker::<MyScene, MyView>::new(&context)?;
-    File::create("__gen__kernel.c")?.write_all(worker.programs().render.source().as_bytes())?;
+    File::create("__gen_kernel.c")?.write_all(worker.programs().render.source().as_bytes())?;
 
     let objects = vec![
-        MySelect::Cube(Cube::new())
+        Cube::new()
         .map(Affine::from(
             Mat3::<f64>::from(
                 5.0, 0.0, 0.0,
@@ -41,21 +37,21 @@ fn main_() -> Result<(), clay_core::Error> {
         )
         .cover(Diffuse {}.color_with(Vec3::from(0.9, 0.9, 0.9))),
         
-        MySelect::Cube(Cube::new())
+        Cube::new()
         .map(Affine::from(
             0.5*Mat3::<f64>::one(),
             Vec3::from(1.0, 0.0, 0.5)),
         )
         .cover(Diffuse {}.color_with(Vec3::from(0.5, 0.5, 0.9))),
         
-        MySelect::Sphere(Sphere::new())
+        Cube::new()
         .map(Affine::from(
             0.5*Mat3::<f64>::one(),
             Vec3::from(0.0, 1.0, 0.5)),
         )
         .cover(Diffuse {}.color_with(Vec3::from(0.9, 0.5, 0.5))),
         
-        MySelect::Sphere(Sphere::new())
+        Cube::new()
         .map(Affine::from(
             0.25*Mat3::<f64>::one(),
             Vec3::from(0.0, 0.0, 0.25)),
@@ -68,7 +64,10 @@ fn main_() -> Result<(), clay_core::Error> {
     let mut window = Window::new((1000, 800))?;
 
     window.start(&context, |screen, pos, map| {
-        let view = ProjView { pos, ori: map };
+        let view = ProjView {
+            pos: pos + Vec3::from(0.0, -1.0, 0.5),
+            ori: map,
+        };
         worker.render(screen, &scene, &view)
     })?;
 

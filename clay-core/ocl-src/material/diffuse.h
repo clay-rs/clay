@@ -6,8 +6,8 @@
 #include "material.h"
 
 
-__MATERIAL_RET__ diffuse_emit(
-    __MATERIAL_ARGS_DEF__
+MATERIAL_RET diffuse_emit(
+    MATERIAL_ARGS_DEF
 ) {
     new_ray->start = pos;
     float3 rhc = random_hemisphere_cosine(seed);
