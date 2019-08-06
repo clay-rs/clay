@@ -1,4 +1,4 @@
-use crate::{pack::*, Shape};//, Bound};
+use crate::{pack::*, class::*, shape::*};//, Bound};
 
 
 #[derive(Clone, Debug, Default)]
@@ -15,20 +15,23 @@ impl Sphere {
     }
 }
 
+impl Shape for Sphere {}
+
+impl Instance<ShapeClass> for Sphere {
+    fn source() -> String {
+        "#include <clay_core/shape/sphere.h>".to_string()
+    }
+    fn inst_name() -> String {
+        "sphere".to_string()
+    }
+}
+
 impl Pack for Sphere {
     fn size_int() -> usize { 0 }
     fn size_float() -> usize { 0 }
     fn pack_to(&self, _buffer_int: &mut [i32], _buffer_float: &mut [f32]) {}
 }
 
-impl Shape for Sphere {
-    fn source() -> String {
-        "#include <clay_core/shape/sphere.h>".to_string()
-    }
-    fn instance() -> String {
-        "sphere".to_string()
-    }
-}
 /*
 impl Bound for Sphere {
     fn ocl_bound_code() -> String {

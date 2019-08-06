@@ -1,12 +1,17 @@
 use crate::{
     pack::*,
-    declare_callable,
+    class::*,
 };
 
 
-pub trait Map: Pack + Sized + 'static {
-    declare_callable!(
-        "map".to_string(),
+pub trait Map: Pack + Instance<MapClass> + Sized + 'static {}
+
+pub enum MapClass {}
+impl Class for MapClass {
+    fn name() -> String {
+        "map".to_string()
+    }
+    fn methods() -> Vec<String> {
         [
             "rel",
             "abs",
@@ -16,6 +21,6 @@ pub trait Map: Pack + Sized + 'static {
         ]
         .iter()
         .map(|m| m.to_string())
-        .collect(),
-    );
+        .collect()
+    }
 }

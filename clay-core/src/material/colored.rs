@@ -1,7 +1,8 @@
 use vecmat::vec::*;
 use crate::{
-    pack::*, 
-    Material,
+    pack::*,
+    class::*,
+    material::*,
     TypeHash,
 };
 
@@ -18,24 +19,26 @@ impl<M: Material> Colored<M> {
     }
 }
 
-impl<M: Material> Material for Colored<M> {
+impl<M: Material> Material for Colored<M> {}
+
+impl<M: Material> Instance<MaterialClass> for Colored<M> {
     fn source() -> String {
         [
             M::source(),
             "#include <clay_core/material/colored.h>".to_string(),
             format!(
                 "COLORED_MATERIAL_FN_DEF({}, {}, {}, {})",
-                Self::instance(),
-                M::instance(),
+                Self::inst_name(),
+                M::inst_name(),
                 M::size_int(),
                 M::size_float(),
             ),
         ].join("\n")
     }
-    fn instance() -> String {
+    fn inst_name() -> String {
         format!(
             "__{}_colored_{:x}",
-            M::instance(),
+            M::inst_name(),
             Self::type_hash(),
         )
     }

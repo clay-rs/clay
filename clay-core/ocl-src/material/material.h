@@ -1,6 +1,7 @@
 #pragma once
 
 #define MATERIAL_RET int
+#define MATERIAL_RET_BAD 0
 
 #define MATERIAL_ARGS_DEF \
     uint *seed, \

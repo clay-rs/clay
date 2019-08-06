@@ -1,6 +1,7 @@
 #pragma once
 
 #define MAP_RET float3
+#define MAP_RET_BAD (float3)(0.0f)
 
 #define MAP_ARGS_DEF \
     float3 v, \

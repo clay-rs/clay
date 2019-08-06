@@ -1,14 +1,16 @@
-use crate::{pack::*, Material};
+use crate::{pack::*, class::*, material::*};
 
 
 #[derive(Clone, Debug, Default)]
 pub struct Diffuse {}
 
-impl Material for Diffuse {
+impl Material for Diffuse {}
+
+impl Instance<MaterialClass> for Diffuse {
     fn source() -> String {
         "#include <clay_core/material/diffuse.h>".to_string()
     }
-    fn instance() -> String {
+    fn inst_name() -> String {
         "diffuse".to_string()
     }
 }

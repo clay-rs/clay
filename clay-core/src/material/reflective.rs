@@ -1,14 +1,16 @@
-use crate::{pack::*, Material};
+use crate::{pack::*, class::*, material::*};
 
 
 #[derive(Clone, Debug, Default)]
 pub struct Reflective {}
 
-impl Material for Reflective {
+impl Material for Reflective {}
+
+impl Instance<MaterialClass> for Reflective {
     fn source() -> String {
     	"#include <clay_core/material/reflective.h>".to_string()
     }
-    fn instance() -> String {
+    fn inst_name() -> String {
         "reflective".to_string()
     }
 }

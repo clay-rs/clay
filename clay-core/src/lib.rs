@@ -10,8 +10,9 @@ pub mod pack;
 pub use pack::*;
 pub mod type_hash;
 pub use type_hash::*;
-//pub mod select;
-pub mod callable;
+pub mod class;
+pub use class::*;
+pub mod select;
 
 pub mod ray;
 pub use ray::{Ray};

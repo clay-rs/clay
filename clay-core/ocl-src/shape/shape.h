@@ -1,6 +1,7 @@
 #pragma once
 
 #define SHAPE_RET bool
+#define SHAPE_RET_BAD false
 
 #define SHAPE_ARGS_DEF \
     uint *seed, Ray ray, \

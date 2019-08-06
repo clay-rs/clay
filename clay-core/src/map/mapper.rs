@@ -1,4 +1,4 @@
-use crate::{pack::*, TypeHash, Map, Shape};
+use crate::{pack::*, class::*, TypeHash, Map, shape::*};
 
 
 pub struct Mapper<S: Shape, M: Map> {
@@ -12,27 +12,30 @@ impl<S: Shape, M: Map> Mapper<S, M> {
     }
 }
 
-impl<S: Shape, M: Map> Shape for Mapper<S, M> {
+impl<S: Shape, M: Map> Shape for Mapper<S, M> {}
+
+impl<S: Shape, M: Map> Instance<ShapeClass> for Mapper<S, M> {
     fn source() -> String {
         [
             S::source(),
             M::source(),
             format!(
                 "MAP_SHAPE_FN_DEF({}, {}, {}, {}, {})",
-                Self::instance(),
-                S::instance(),
-                M::instance(),
+                Self::inst_name(),
+                S::inst_name(),
+                M::inst_name(),
                 S::size_int(), S::size_float(),
             ),
         ].join("\n")
     }
-    fn instance() -> String {
+    fn inst_name() -> String {
         format!(
             "__mapper_{:x}",
             Self::type_hash(),
         )
     }
 }
+
 
 impl<S: Shape, M: Map> Pack for Mapper<S, M> {
     fn size_int() -> usize {

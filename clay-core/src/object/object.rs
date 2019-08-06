@@ -1,17 +1,21 @@
-use crate::{Pack};
+use crate::{
+    Pack,
+    class::*,
+};
 
 
 /// An abstract object that could be drawn completely.
-pub trait Object: Pack + Sized + 'static {
-    fn source() -> String;
-    fn instance() -> String;
-    fn class() -> String {
-    	"object".to_string()
+pub trait Object: Pack + Instance<ObjectClass> + Sized + 'static {}
+
+pub enum ObjectClass {}
+impl Class for ObjectClass {
+    fn name() -> String {
+        "object".to_string()
     }
     fn methods() -> Vec<String> {
-    	vec![
-    	"hit".to_string(),
-    	"emit".to_string(),
-    	]
+        vec![
+            "hit".to_string(),
+            "emit".to_string(),
+        ]
     }
 }

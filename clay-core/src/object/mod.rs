@@ -1,5 +1,5 @@
 mod object;
 mod covered;
 
-pub use object::Object;
-pub use covered::Covered;
+pub use object::*;
+pub use covered::*;

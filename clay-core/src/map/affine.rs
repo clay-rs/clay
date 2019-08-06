@@ -1,17 +1,19 @@
 use vecmat::{map::*};
-use crate::{pack::*, Map};
+use crate::{pack::*, class::*, map::*};
 
 
 pub type Affine = Affine3<f64>;
 
-impl Map for Affine {
+impl Instance<MapClass> for Affine {
     fn source() -> String {
         "#include <clay_core/map/affine.h>".to_string()
     }
-    fn instance() -> String {
+    fn inst_name() -> String {
         "affine".to_string()
     }
 }
+
+impl Map for Affine {}
 
 impl Pack for Affine {
     fn size_int() -> usize {

@@ -25,8 +25,8 @@ impl<T: Object> Scene for ListScene<T> {
     fn source() -> String {
         [
             T::source(),
-            format!("#define __object_hit {}_hit", T::instance()),
-            format!("#define __object_emit {}_emit", T::instance()),
+            format!("#define __object_hit {}_hit", T::inst_name()),
+            format!("#define __object_emit {}_emit", T::inst_name()),
             "#include <clay_core/scene/list_scene.h>".to_string(),
         ]
         .join("\n")

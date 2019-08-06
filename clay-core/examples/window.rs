@@ -7,14 +7,18 @@ use vecmat::{vec::*, mat::*};
 use clay_core::{
     Context, Worker,
     scene::ListScene, view::ProjView, map::*,
-    shape::*,
+    class::*, shape::*,
     material::*, object::Covered,
+    instance_select,
 };
 use clay_gui::{Window};
 
-
-type MyShape = Covered<Mapper<Cube, Affine>, Colored<Diffuse>>;
-type MyScene = ListScene<MyShape>;
+instance_select!(MyShape: Shape: ShapeClass, {
+    Cube(Cube),
+    Sphere(Sphere),
+});
+type MyObject = Covered<Mapper<MyShape, Affine>, Colored<Diffuse>>;
+type MyScene = ListScene<MyObject>;
 type MyView = ProjView;
 
 fn main_() -> Result<(), clay_core::Error> {
@@ -26,7 +30,7 @@ fn main_() -> Result<(), clay_core::Error> {
     File::create("__gen_kernel.c")?.write_all(worker.programs().render.source().as_bytes())?;
 
     let objects = vec![
-        Cube::new()
+        MyShape::Cube(Cube::new())
         .map(Affine::from(
             Mat3::<f64>::from(
                 5.0, 0.0, 0.0,
@@ -37,21 +41,21 @@ fn main_() -> Result<(), clay_core::Error> {
         )
         .cover(Diffuse {}.color_with(Vec3::from(0.9, 0.9, 0.9))),
         
-        Cube::new()
+        MyShape::Cube(Cube::new())
         .map(Affine::from(
-            0.5*Mat3::<f64>::one(),
-            Vec3::from(1.0, 0.0, 0.5)),
+            0.4*Mat3::<f64>::one(),
+            Vec3::from(1.0, 0.0, 0.4)),
         )
         .cover(Diffuse {}.color_with(Vec3::from(0.5, 0.5, 0.9))),
         
-        Cube::new()
+        MyShape::Sphere(Sphere::new())
         .map(Affine::from(
             0.5*Mat3::<f64>::one(),
             Vec3::from(0.0, 1.0, 0.5)),
         )
         .cover(Diffuse {}.color_with(Vec3::from(0.9, 0.5, 0.5))),
         
-        Cube::new()
+        MyShape::Sphere(Sphere::new())
         .map(Affine::from(
             0.25*Mat3::<f64>::one(),
             Vec3::from(0.0, 0.0, 0.25)),

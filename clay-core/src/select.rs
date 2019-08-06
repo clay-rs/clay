@@ -1,12 +1,8 @@
-
 #[macro_export]
-macro_rules! entity_select {
-    ($Select:ident, { $( $Enum:ident($Entity:ty) ),+ }) => {
-        base_select!($Select, { $( $Enum($Shape) )+ })
-    };
-    ($Select:ident, { $( $Enum:ident($Entity:ty), )+ }) => {
+macro_rules! instance_select {
+    ($Select:ident : $Base:tt : $Class:ty, { $( $Enum:ident($Callable:ty) ),+ $(,)? }) => {
         pub enum $Select {
-            $( $Enum($Entity), )+
+            $( $Enum($Callable), )+
         }
 
         impl $Select {
@@ -23,15 +19,18 @@ macro_rules! entity_select {
             }
 
             #[allow(unused_assignments)]
-            fn ocl_code(ocl_fn: &str, ocl_cpref: &str, ocl_fn_ret: &str) -> String {
+            fn method_source(method: &str) -> String {
+                let cpref = <$Class>::name().to_uppercase();
+
                 let mut cases = Vec::new();
                 let mut i = 0;
                 $(
+                    let inst_name = <$Callable as $crate::Instance<$Class>>::inst_name();
                     cases.push([
                         format!("\tif (sel_idx == {}) {{", i),
                         format!(
-                            "\t\treturn {}({}_ARGS_B__(1, 0));",
-                            ocl_fn, ocl_cpref,
+                            "\t\treturn {}_{}({}_ARGS_B(1, 0));",
+                            inst_name, method, cpref,
                         ),
                         "\t}".to_string(),
                     ].join("\n"));
@@ -40,32 +39,47 @@ macro_rules! entity_select {
                 let cases_text = cases.join(" else\n");
                 [
                     &format!(
-                        "{}_RET__ {}({}_ARGS_DEF__) {{",
-                        ocl_cpref, ocl_fn, ocl_cpref,
+                        "{}_RET {}_{}({}_ARGS_DEF) {{",
+                        cpref, Self::inst_name(), method, cpref,
                     ),
                     "\tint sel_idx = ibuf[0];",
                     &cases_text,
-                    format!("\treturn {};", ocl_fn_ret),
+                    &format!("\treturn {}_RET_BAD;", cpref),
                     "}",
                 ].join("\n")
             }
+        }
 
-            fn ocl_fn(ocl_fn_pref: &str) -> String {
+        impl $crate::$Base for $Select {}
+
+        impl $crate::Instance<$Class> for $Select {
+            fn source() -> String {
+                let mut ms = Vec::new();
+                for method in <$Class>::methods().into_iter() {
+                    ms.push(Self::method_source(&method));
+                }
+                [
+                    $( <$Callable as $crate::Instance<$Class>>::source(), )+
+                    ms.join("\n"),
+                ].join("\n")
+            }
+
+            fn inst_name() -> String {
                 use $crate::TypeHash;
-                format!("__select_{}_{:x}__", ocl_fn_pref, Self::type_hash())
+                format!("__select_{:x}", Self::type_hash())
             }
         }
 
         impl $crate::Pack for $Select {
             fn size_int() -> usize {
                 let sizes = [
-                    $( <$Shape>::size_int(), )+
+                    $( <$Callable>::size_int(), )+
                 ];
                 1 + *sizes.iter().max().unwrap()
             }
             fn size_float() -> usize {
                 let sizes = [
-                    $( <$Shape>::size_float(), )+
+                    $( <$Callable>::size_float(), )+
                 ];
                 *sizes.iter().max().unwrap()
             }
