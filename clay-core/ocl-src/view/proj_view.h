@@ -1,4 +1,5 @@
 #include <clay_core/ray.h>
+#include <clay_core/random.h>
 
 
 typedef struct {
@@ -21,13 +22,21 @@ float2 ptos(int2 pos, int2 size) {
     return p/(float)size.y;
 }
 
+float2 ptos_rand(uint *seed, int2 pos, int2 size) {
+    float2 p = convert_float2(pos) - 0.5f*convert_float2(size);
+    p.y = -p.y;
+    p += (float2)(random_uniform(seed), random_uniform(seed)) - 0.5f;
+    return p/(float)size.y;
+}
+
+
 Ray __view_emit__(
     uint *seed,
     int2 pos,
     int2 size,
     __VIEW_ARGS_DEF__
 ) {
-    float2 v = ptos(pos, size);
+    float2 v = ptos_rand(seed, pos, size);
     Ray ray = {
         .start = view_pos,
         .dir = normalize(v.x*view_map.s012 + v.y*view_map.s456 - 1.0f*view_map.s89a),

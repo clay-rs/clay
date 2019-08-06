@@ -1,3 +1,6 @@
+#pragma once
+
+
 typedef struct {
     float3 x, y, z;
 } matrix3;
