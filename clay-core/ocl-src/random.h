@@ -1,7 +1,7 @@
 #pragma once
 
 
-// Random 32-bit integer using linear congruential generator
+// Random 32-bit integer from linear congruential generator
 uint random_next(uint *seed) {
     return (*seed = 1103515245**seed + 12345);
 }
