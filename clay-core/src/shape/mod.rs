@@ -1,8 +1,10 @@
 mod shape;
 pub use shape::*;
 
-//mod bound;
-//pub use bound::{Bound, Bounded};
+mod bound;
+pub use bound::*;
+mod attractor;
+pub use attractor::*;
 
 mod select;
 

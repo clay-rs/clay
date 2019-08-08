@@ -1,5 +1,6 @@
 use std::{
     path::Path,
+    collections::HashSet,
     marker::PhantomData,
 };
 use ocl::{self, prm};
@@ -34,13 +35,14 @@ impl<S: Scene, V: View> Worker<S, V> {
     pub fn new(context: &Context) -> crate::Result<Self> {
         let queue = context.queue().clone();
 
+        let mut inst_cache = HashSet::<u64>::new();
         let render_prog = Program::new(
             &ListHook::builder()
             .add_hook(get_ocl_src())
             .add_hook(
                 MemHook::builder()
-                .add_file(&Path::new("__gen/scene.h"), S::source())?
-                .add_file(&Path::new("__gen/view.h"), V::ocl_view_code())?
+                .add_file(&Path::new("__gen/scene.h"), S::source(&mut inst_cache))?
+                .add_file(&Path::new("__gen/view.h"), V::source(&mut inst_cache))?
                 .build()
             )
             .build(),

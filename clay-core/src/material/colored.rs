@@ -1,3 +1,4 @@
+use std::collections::HashSet;
 use vecmat::vec::*;
 use crate::{
     pack::*,
@@ -22,9 +23,12 @@ impl<M: Material> Colored<M> {
 impl<M: Material> Material for Colored<M> {}
 
 impl<M: Material> Instance<MaterialClass> for Colored<M> {
-    fn source() -> String {
+    fn source(cache: &mut HashSet<u64>) -> String {
+        if !cache.insert(Self::type_hash()) {
+            return String::new()
+        }
         [
-            M::source(),
+            M::source(cache),
             "#include <clay_core/material/colored.h>".to_string(),
             format!(
                 "COLORED_MATERIAL_FN_DEF({}, {}, {}, {})",

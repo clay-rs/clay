@@ -8,7 +8,7 @@ use clay_core::{
     Context, Worker,
     scene::ListScene, view::ProjView, map::*,
     shape::*, material::*, object::Covered,
-    shape_select, material_combine,
+    shape_select, material_select, material_combine,
 };
 use clay_gui::{Window};
 
@@ -16,9 +16,14 @@ shape_select!(MyShape, {
     Cube(Cube),
     Sphere(Sphere),
 });
-material_combine!(MyMaterial, {
+material_combine!(Glossy, {
     reflect: Reflective,
     diffuse: Colored<Diffuse>,
+});
+material_select!( MyMaterial, {
+    Matte(Colored<Diffuse>),
+    Glossy(Glossy),
+    Luminous(Colored<Luminous>),
 });
 type MyObject = Covered<Mapper<MyShape, Affine>, MyMaterial>;
 type MyScene = ListScene<MyObject>;
@@ -33,48 +38,55 @@ fn main_() -> Result<(), clay_core::Error> {
     File::create("__gen_kernel.c")?.write_all(worker.programs().render.source().as_bytes())?;
 
     let objects = vec![
-        MyShape::Cube(Cube::new())
-        .map(Affine::from(
-            Mat3::<f64>::from(
+        MyShape::from(Cube::new())
+        .map(
+            Linear::from(Mat3::<f64>::from(
                 5.0, 0.0, 0.0,
                 0.0, 5.0, 0.0,
                 0.0, 0.0, 0.1,
-            ),
-            Vec3::from(0.0, 0.0, -0.1)),
+            ))
+            .chain(Shift::from(Vec3::from(0.0, 0.0, -0.1)))
         )
-        .cover(MyMaterial::new(
-            (Reflective {}, 0.1),
-            (Diffuse {}.color_with(Vec3::from(0.9, 0.9, 0.9)), 0.9),
+        .cover(MyMaterial::from(
+            Diffuse {}.color_with(Vec3::from(0.9, 0.9, 0.9)),
         )),
         
-        MyShape::Cube(Cube::new())
-        .map(Affine::from(
-            0.4*Mat3::<f64>::one(),
-            Vec3::from(1.0, 0.0, 0.4)),
+        MyShape::from(Cube::new())
+        .map(
+            Linear::from(0.4*Mat3::<f64>::one())
+            .chain(Shift::from(Vec3::from(1.0, 0.0, 0.4)))
         )
-        .cover(MyMaterial::new(
-            (Reflective {}, 0.1),
-            (Diffuse {}.color_with(Vec3::from(0.5, 0.5, 0.9)), 0.9),
-        )),
+        .cover(MyMaterial::from(Glossy::new(
+            (0.2, Reflective {}),
+            (0.8, Diffuse {}.color_with(Vec3::from(0.5, 0.5, 0.9))),
+        ))),
         
-        MyShape::Sphere(Sphere::new())
-        .map(Affine::from(
-            0.5*Mat3::<f64>::one(),
-            Vec3::from(0.0, 1.0, 0.5)),
+        MyShape::from(Sphere::new())
+        .map(
+            Linear::from(0.5*Mat3::<f64>::one())
+            .chain(Shift::from(Vec3::from(0.0, 1.0, 0.5)))
         )
-        .cover(MyMaterial::new(
-            (Reflective {}, 0.1),
-            (Diffuse {}.color_with(Vec3::from(0.9, 0.5, 0.5)), 0.9),
-        )),
+        .cover(MyMaterial::from(Glossy::new(
+            (0.2, Reflective {}),
+            (0.8, Diffuse {}.color_with(Vec3::from(0.9, 0.5, 0.5))),
+        ))),
         
-        MyShape::Sphere(Sphere::new())
-        .map(Affine::from(
-            0.25*Mat3::<f64>::one(),
-            Vec3::from(0.0, 0.0, 0.25)),
+        MyShape::from(Sphere::new())
+        .map(
+            Linear::from(0.25*Mat3::<f64>::one())
+            .chain(Shift::from(Vec3::from(0.0, 0.0, 0.25)))
         )
-        .cover(MyMaterial::new(
-            (Reflective {}, 0.1),
-            (Diffuse {}.color_with(Vec3::from(0.5, 0.9, 0.5)), 0.9),
+        .cover(MyMaterial::from(
+            Diffuse {}.color_with(Vec3::from(0.5, 0.9, 0.5)),
+        )),
+
+        MyShape::from(Cube::new())
+        .map(
+            Linear::from(0.25*Mat3::<f64>::one())
+            .chain(Shift::from(Vec3::from(0.0, 0.0, 5.0)))
+        )
+        .cover(MyMaterial::from(
+            Luminous {}.color_with(100.0*Vec3::from(1.0, 1.0, 1.0)),
         )),
         
     ];

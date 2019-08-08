@@ -5,7 +5,7 @@ use crate::{
 
 
 /// An abstract object that could be drawn completely.
-pub trait Object: Pack + Instance<ObjectClass> + Sized + 'static {}
+pub trait Object: Pack + Instance<ObjectClass> {}
 
 pub enum ObjectClass {}
 impl Class for ObjectClass {

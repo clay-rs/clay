@@ -1,3 +1,4 @@
+use std::collections::HashSet;
 use crate::{pack::*, class::*, material::*};
 
 
@@ -7,7 +8,7 @@ pub struct Diffuse {}
 impl Material for Diffuse {}
 
 impl Instance<MaterialClass> for Diffuse {
-    fn source() -> String {
+    fn source(_: &mut HashSet<u64>) -> String {
         "#include <clay_core/material/diffuse.h>".to_string()
     }
     fn inst_name() -> String {

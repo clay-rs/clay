@@ -1,3 +1,4 @@
+use std::collections::HashSet;
 use ocl::{self, prm, builders::KernelBuilder};
 use vecmat::{vec::*, mat::*};
 use crate::{Push, View};
@@ -8,7 +9,7 @@ pub struct ProjView {
 }
 
 impl View for ProjView {
-	fn ocl_view_code() -> String {
+	fn source(_: &mut HashSet<u64>) -> String {
 		"#include <clay_core/view/proj_view.h>\n".to_string()
 	}
 }

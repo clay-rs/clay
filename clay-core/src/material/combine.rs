@@ -7,20 +7,20 @@ macro_rules! _replace {
 macro_rules! material_combine {
     ($Combine:ident, { $( $field:ident : $Material:ty ),+ $(,)? }) => {
         pub struct $Combine {
-            $( pub $field: ($Material, f64), )+
+            $( pub $field: (f64, $Material), )+
         }
 
         impl $Combine {
             pub fn new(
-                $( mut $field: ($Material, f64), )+
+                $( mut $field: (f64, $Material), )+
             ) -> Self {
                 let mut sum = 0.0;
                 $(
-                    sum += $field.1;
-                    $field.1 = sum;
+                    sum += $field.0;
+                    $field.0 = sum;
                 )+
                 Self {
-                    $( $field: ($field.0, $field.1*sum), )+
+                    $( $field: ($field.0*sum, $field.1), )+
                 }
             }
 
@@ -63,14 +63,17 @@ macro_rules! material_combine {
         impl $crate::Material for $Combine {}
 
         impl $crate::Instance<$crate::material::MaterialClass> for $Combine {
-            fn source() -> String {
-                use $crate::{class::*, material::*};
+            fn source(cache: &mut std::collections::HashSet<u64>) -> String {
+                use $crate::{TypeHash, class::*, material::*};
+                if !cache.insert(Self::type_hash()) {
+                    return String::new()
+                }
                 let mut ms = Vec::new();
                 for method in MaterialClass::methods().into_iter() {
                     ms.push(Self::method_source(&method));
                 }
                 [
-                    $( <$Material as Instance<MaterialClass>>::source(), )+
+                    $( <$Material as Instance<MaterialClass>>::source(cache), )+
                     ms.join("\n"),
                 ].join("\n")
             }
@@ -98,8 +101,8 @@ macro_rules! material_combine {
                 use $crate::pack::*;
                 Packer::new(buffer_int, buffer_float)
                 $(
-                    .pack(&self.$field.1)
                     .pack(&self.$field.0)
+                    .pack(&self.$field.1)
                 )+;
             }
         }

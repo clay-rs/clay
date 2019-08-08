@@ -4,7 +4,7 @@ use vecmat::{vec::*, mat::*};
 /// Something that could be packed to `i32` buffers
 pub trait PackInt {
     /// Size of integer part of an object.
-    fn size_int() -> usize;
+    fn size() -> usize;
     
     /// Write an object into `i32` buffer.
     ///
@@ -15,7 +15,7 @@ pub trait PackInt {
 /// Something that could be packed to `f32` buffers
 pub trait PackFloat {
     /// Size of float part of an object.
-    fn size_float() -> usize;
+    fn size() -> usize;
 
     /// Write an object into `f32` buffer.
     ///
@@ -43,7 +43,7 @@ pub trait PackerInt {
 impl<'a> PackerInt for &'a mut [i32] {
     fn pack<T: PackInt>(self, t: &T) -> Self {
         t.pack_int_to(self);
-        &mut self[T::size_int()..]
+        &mut self[T::size()..]
     }
 }
 
@@ -53,7 +53,7 @@ pub trait PackerFloat {
 impl<'a> PackerFloat for &'a mut [f32] {
     fn pack<T: PackFloat>(self, t: &T) -> Self {
         t.pack_float_to(self);
-        &mut self[T::size_float()..]
+        &mut self[T::size()..]
     }
 }
 
@@ -76,7 +76,7 @@ impl<'a> Packer<'a> {
 
 
 impl PackInt for i32 {
-    fn size_int() -> usize { 1 }
+    fn size() -> usize { 1 }
     fn pack_int_to(&self, buffer: &mut [i32]) {
         buffer[0] = *self;
     }
@@ -89,7 +89,7 @@ impl Pack for i32 {
     }
 }
 impl PackInt for u32 {
-    fn size_int() -> usize { 1 }
+    fn size() -> usize { 1 }
     fn pack_int_to(&self, buffer: &mut [i32]) {
         buffer[0] = *self as i32;
     }
@@ -103,7 +103,7 @@ impl Pack for u32 {
 }
 
 impl PackFloat for f32 {
-    fn size_float() -> usize { 1 }
+    fn size() -> usize { 1 }
     fn pack_float_to(&self, buffer: &mut [f32]) {
         buffer[0] = *self;
     }
@@ -116,7 +116,7 @@ impl Pack for f32 {
     }
 }
 impl PackFloat for f64 {
-    fn size_float() -> usize { 1 }
+    fn size() -> usize { 1 }
     fn pack_float_to(&self, buffer: &mut [f32]) {
         buffer[0] = *self as f32;
     }
@@ -130,7 +130,7 @@ impl Pack for f64 {
 }
 
 impl<T: PackFloat + Copy> PackFloat for Vec3<T> {
-    fn size_float() -> usize { 3*T::size_float() }
+    fn size() -> usize { 3*T::size() }
     fn pack_float_to(&self, mut buffer: &mut [f32]) {
         for x in self.iter() {
             buffer = buffer.pack(x);
@@ -149,7 +149,7 @@ impl<T: Pack + Copy> Pack for Vec3<T> {
 }
 
 impl<T: PackFloat + Copy> PackFloat for Mat3<T> {
-    fn size_float() -> usize { 9*T::size_float() }
+    fn size() -> usize { 9*T::size() }
     fn pack_float_to(&self, mut buffer: &mut [f32]) {
         for x in self.iter() {
             buffer = buffer.pack(x);

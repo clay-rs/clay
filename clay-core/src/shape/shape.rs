@@ -9,7 +9,7 @@ use crate::{
 
 /// Shape of an object.
 /// It defines the search of the point where ray intersects this shape.
-pub trait Shape: Pack + Instance<ShapeClass> + Sized + 'static {
+pub trait Shape: Pack + Instance<ShapeClass> {
     /// Creates a new shape by applying some kind of mapping to previous one.
     ///
     /// Most common use case is applying affine transform to some unit shape.

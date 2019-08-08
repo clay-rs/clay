@@ -1,14 +1,23 @@
-use crate::{Pack, Shape};
+use crate::{
+    Pack, Shape,
+    class::*,
+};
+
 
 /// Bounding shape that contains the whole object inside.
-pub trait Bound: Pack {
-    /// Associated OpenCL code that contains necessary function definition.
-    fn ocl_bound_code() -> String;
-    /// Name of the function from the code that is used to check bounds.
-    fn ocl_bound_fn() -> String;
+pub trait Bound: Pack + Instance<BoundClass> {}
+
+pub enum BoundClass {}
+impl Class for BoundClass {
+    fn name() -> String {
+        "bound".to_string()
+    }
+    fn methods() -> Vec<String> {
+        vec!["bound".to_string()]
+    }
 }
 
-/// The shape that could be bounded by specified shape.
+/// The shape that could be put inside the specified bound.
 pub trait Bounded: Shape {
     /// Bounding shape.
     type Bound: Bound;

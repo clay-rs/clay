@@ -1,3 +1,4 @@
+use std::collections::HashSet;
 use crate::{pack::*, class::*, shape::*};
 
 
@@ -18,7 +19,7 @@ impl Cube {
 impl Shape for Cube {}
 
 impl Instance<ShapeClass> for Cube {
-    fn source() -> String {
+    fn source(_: &mut HashSet<u64>) -> String {
         "#include <clay_core/shape/cube.h>".to_string()
     }
     fn inst_name() -> String {

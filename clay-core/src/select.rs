@@ -1,8 +1,8 @@
 #[macro_export]
 macro_rules! instance_select {
-    ($Select:ident : $Base:ty : $Class:ty, { $( $Enum:ident($Callable:ty) ),+ $(,)? }) => {
+    ($Select:ident : $Base:ty : $Class:ty, { $( $Enum:ident($Instance:ty) ),+ $(,)? }) => {
         pub enum $Select {
-            $( $Enum($Callable), )+
+            $( $Enum($Instance), )+
         }
 
         impl $Select {
@@ -26,7 +26,7 @@ macro_rules! instance_select {
                 let mut cases = Vec::new();
                 let mut i = 0;
                 $(
-                    let inst_name = <$Callable as $crate::Instance<$Class>>::inst_name();
+                    let inst_name = <$Instance as $crate::Instance<$Class>>::inst_name();
                     cases.push([
                         format!("\tif (sel_idx == {}) {{", i),
                         format!(
@@ -54,14 +54,17 @@ macro_rules! instance_select {
         impl $Base for $Select {}
 
         impl $crate::Instance<$Class> for $Select {
-            fn source() -> String {
-                use $crate::class::*;
+            fn source(cache: &mut std::collections::HashSet<u64>) -> String {
+                use $crate::{TypeHash, class::*};
+                if !cache.insert(Self::type_hash()) {
+                    return String::new()
+                }
                 let mut ms = Vec::new();
                 for method in <$Class>::methods().into_iter() {
                     ms.push(Self::method_source(&method));
                 }
                 [
-                    $( <$Callable as $crate::Instance<$Class>>::source(), )+
+                    $( <$Instance as $crate::Instance<$Class>>::source(cache), )+
                     ms.join("\n"),
                 ].join("\n")
             }
@@ -75,13 +78,13 @@ macro_rules! instance_select {
         impl $crate::Pack for $Select {
             fn size_int() -> usize {
                 let sizes = [
-                    $( <$Callable>::size_int(), )+
+                    $( <$Instance>::size_int(), )+
                 ];
                 1 + *sizes.iter().max().unwrap()
             }
             fn size_float() -> usize {
                 let sizes = [
-                    $( <$Callable>::size_float(), )+
+                    $( <$Instance>::size_float(), )+
                 ];
                 *sizes.iter().max().unwrap()
             }
@@ -98,5 +101,13 @@ macro_rules! instance_select {
                 unreachable!()
             }
         }
+
+        $(
+            impl From<$Instance> for $Select {
+                fn from(origin: $Instance) -> Self {
+                    $Select::$Enum(origin)
+                }
+            }
+        )+
     };
 }

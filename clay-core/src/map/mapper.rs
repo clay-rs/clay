@@ -1,3 +1,4 @@
+use std::collections::HashSet;
 use crate::{pack::*, class::*, TypeHash, Map, shape::*};
 
 
@@ -15,10 +16,13 @@ impl<S: Shape, M: Map> Mapper<S, M> {
 impl<S: Shape, M: Map> Shape for Mapper<S, M> {}
 
 impl<S: Shape, M: Map> Instance<ShapeClass> for Mapper<S, M> {
-    fn source() -> String {
+    fn source(cache: &mut HashSet<u64>) -> String {
+        if !cache.insert(Self::type_hash()) {
+            return String::new()
+        }
         [
-            S::source(),
-            M::source(),
+            S::source(cache),
+            M::source(cache),
             format!(
                 "MAP_SHAPE_FN_DEF({}, {}, {}, {}, {})",
                 Self::inst_name(),

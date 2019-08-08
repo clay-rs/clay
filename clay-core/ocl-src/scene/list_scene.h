@@ -63,7 +63,7 @@ int scene_trace(
         }
     } else {
         float z = 0.5f*(ray.dir.z + 1.0f);
-        *color += ray.color*(float3)(z, z, z);
+        *color += ray.color*z*(float3)(0.2, 0.2, 0.4);
         return 0;
     }
 }

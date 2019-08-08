@@ -1,3 +1,4 @@
+use std::collections::HashSet;
 use crate::{
     Pack, Packer,
     TypeHash, class::*,
@@ -22,11 +23,14 @@ impl<S: Shape, M: Material> Covered<S, M> {
 impl<S: Shape, M: Material> Object for Covered<S, M> {}
 
 impl<S: Shape, M: Material> Instance<ObjectClass> for Covered<S, M> {
-    fn source() -> String {
+    fn source(cache: &mut HashSet<u64>) -> String {
+        if !cache.insert(Self::type_hash()) {
+            return String::new()
+        }
         let cpref = MaterialClass::name().to_uppercase();
         [
-            S::source(),
-            M::source(),
+            S::source(cache),
+            M::source(cache),
             [
                 format!(
                     "#define {}_hit {}_hit",

@@ -1,4 +1,5 @@
-use crate::{pack::*, class::*, shape::*};//, Bound};
+use std::collections::HashSet;
+use crate::{pack::*, class::*, shape::*};
 
 
 #[derive(Clone, Debug, Default)]
@@ -18,7 +19,7 @@ impl Sphere {
 impl Shape for Sphere {}
 
 impl Instance<ShapeClass> for Sphere {
-    fn source() -> String {
+    fn source(_: &mut HashSet<u64>) -> String {
         "#include <clay_core/shape/sphere.h>".to_string()
     }
     fn inst_name() -> String {
@@ -32,13 +33,13 @@ impl Pack for Sphere {
     fn pack_to(&self, _buffer_int: &mut [i32], _buffer_float: &mut [f32]) {}
 }
 
-/*
-impl Bound for Sphere {
-    fn ocl_bound_code() -> String {
-        Self::ocl_code()
+impl Bound for Sphere {}
+
+impl Instance<BoundClass> for Sphere {
+    fn source(_: &mut HashSet<u64>) -> String {
+        "#include <clay_core/shape/sphere.h>".to_string()
     }
-    fn ocl_bound_fn() -> String {
-        "sphere_bound".to_string()
+    fn inst_name() -> String {
+        "sphere".to_string()
     }
 }
-*/

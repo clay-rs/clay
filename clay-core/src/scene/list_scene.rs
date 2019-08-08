@@ -1,3 +1,4 @@
+use std::collections::HashSet;
 use ocl::{
     self,
     builders::KernelBuilder,
@@ -22,9 +23,9 @@ impl<T: Object> ListScene<T> {
 }
 
 impl<T: Object> Scene for ListScene<T> {
-    fn source() -> String {
+    fn source(cache: &mut HashSet<u64>) -> String {
         [
-            T::source(),
+            T::source(cache),
             format!("#define __object_hit {}_hit", T::inst_name()),
             format!("#define __object_emit {}_emit", T::inst_name()),
             "#include <clay_core/scene/list_scene.h>".to_string(),
