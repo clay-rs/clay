@@ -26,17 +26,20 @@ material_select!( MyMaterial, {
     Luminous(Colored<Luminous>),
 });
 type MyObject = Covered<Mapper<MyShape, Affine>, MyMaterial>;
-type MyScene = ListScene<MyObject>;
+type MyAttractor = Mapper<Sphere, Chain<Scale, Shift>>;
+type MyScene = ListScene<MyObject, MyAttractor>;
 type MyView = ProjView;
 
-fn main_() -> Result<(), clay_core::Error> {
+fn main() {
     let platform = Platform::default();
-    let device = Device::first(platform)?;
+    let device = Device::first(platform).unwrap();
 
-    let context = Context::new(platform, device)?;
-    let mut worker = Worker::<MyScene, MyView>::new(&context)?;
-    File::create("__gen_kernel.c")?.write_all(worker.programs().render.source().as_bytes())?;
+    let context = Context::new(platform, device).unwrap();
+    let mut worker = Worker::<MyScene, MyView>::new(&context).unwrap();
+    File::create("__gen_kernel.c").unwrap().write_all(worker.programs().render.source().as_bytes()).unwrap();
 
+    let omni_size = 0.25;
+    let omni_pos = Vec3::from(0.0, 0.0, 5.0);
     let objects = vec![
         MyShape::from(Cube::new())
         .map(
@@ -82,17 +85,24 @@ fn main_() -> Result<(), clay_core::Error> {
 
         MyShape::from(Cube::new())
         .map(
-            Linear::from(0.25*Mat3::<f64>::one())
-            .chain(Shift::from(Vec3::from(0.0, 0.0, 5.0)))
+            Linear::from(omni_size*Mat3::<f64>::one())
+            .chain(Shift::from(omni_pos))
         )
         .cover(MyMaterial::from(
             Luminous {}.color_with(100.0*Vec3::from(1.0, 1.0, 1.0)),
         )),
         
     ];
-    let scene = MyScene::new(objects, &context)?;
+    let attractors = vec![
+        Sphere::new()
+        .map(
+            Scale::from(omni_size*f64::sqrt(2.0))
+            .chain(Shift::from(Vec3::from(0.0, 0.0, 5.0)))
+        )
+    ];
+    let scene = MyScene::new(&context, objects, attractors).unwrap();
 
-    let mut window = Window::new((1000, 800))?;
+    let mut window = Window::new((1000, 800)).unwrap();
 
     window.start(&context, |screen, pos, map| {
         let view = ProjView {
@@ -100,14 +110,5 @@ fn main_() -> Result<(), clay_core::Error> {
             ori: map,
         };
         worker.render(screen, &scene, &view)
-    })?;
-
-    Ok(())
-}
-
-fn main() {
-    match main_() {
-        Ok(()) => (),
-        Err(err) => panic!("{}", err),
-    } 
+    }).unwrap();
 }

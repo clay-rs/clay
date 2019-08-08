@@ -1,18 +1,31 @@
 #pragma once
 
+#include <clay_core/random.h>
+
+
 #define SCENE_ARGS_DEF \
     __global const int *objects_int, \
     __global const float *objects_float, \
-    int size_int, \
-    int size_float, \
-    int objects_count
+    __global const int *attractors_int, \
+    __global const float *attractors_float, \
+    int object_size_int, \
+    int object_size_float, \
+    int attractor_size_int, \
+    int attractor_size_float, \
+    int objects_count, \
+    int attractors_count
 
 #define SCENE_ARGS \
     objects_int, \
     objects_float, \
-    size_int, \
-    size_float, \
-    objects_count
+    attractors_int, \
+    attractors_float, \
+    object_size_int, \
+    object_size_float, \
+    attractor_size_int, \
+    attractor_size_float, \
+    objects_count, \
+    attractors_count
 
 #define MAX_DEPTH 4
 
@@ -37,8 +50,8 @@ int scene_trace(
             continue;
         }
         
-        __global const int *ibuf = objects_int + size_int*i;
-        __global const float *fbuf = objects_float + size_float*i;
+        __global const int *ibuf = objects_int + object_size_int*i;
+        __global const float *fbuf = objects_float + object_size_float*i;
         if (__object_hit(seed, ray, ibuf, fbuf, &enter, &exit, &norm)) {
             if (enter < hit_enter) {
                 hit_enter = enter;
@@ -52,11 +65,18 @@ int scene_trace(
     if (hit_idx >= 0) {
         float3 hit_pos = ray.start + ray.dir*hit_enter;
 
-        __global const int *ibuf = objects_int + size_int*hit_idx;
-        __global const float *fbuf = objects_float + size_float*hit_idx;
+        __global const int *ibuf = objects_int + object_size_int*hit_idx;
+        __global const float *fbuf = objects_float + object_size_float*hit_idx;
         int num_rays = __object_emit(seed, ray, hit_pos, hit_norm, ibuf, fbuf, new_ray, color);
         if (num_rays > 0) {
             new_ray->origin = hit_idx;
+
+            // attract
+            int attract_idx = (int)(random_uniform(seed)*attractors_count);
+            __global const int *ibuf = attractors_int + attractor_size_int*attract_idx;
+            __global const float *fbuf = attractors_float + attractor_size_float*attract_idx;
+            
+
             return 1;
         } else {
             return 0;

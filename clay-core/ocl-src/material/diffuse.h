@@ -15,5 +15,6 @@ MATERIAL_RET diffuse_emit(
     complement(basis.z, &basis.x, &basis.y);
     new_ray->dir = matrix3_dot(matrix3_transpose(basis), rhc);
     new_ray->color = ray.color;
+    new_ray->type = RAY_DIFFUSE;
     return 1;
 }

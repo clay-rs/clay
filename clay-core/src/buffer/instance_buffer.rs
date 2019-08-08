@@ -8,14 +8,14 @@ use crate::{
 };
 
 
-pub struct ObjectBuffer<T: Pack> {
+pub struct InstanceBuffer<T: Pack> {
     buffer_int: ocl::Buffer<i32>,
     buffer_float: ocl::Buffer<f32>,
     count: usize,
     phantom: PhantomData<T>,
 }
 
-impl<T: Pack> ObjectBuffer<T> {
+impl<T: Pack> InstanceBuffer<T> {
     pub fn new(context: &Context, objects: &[T]) -> crate::Result<Self> {
         let mut buffer = Self::reserved(context, objects.len())?;
         buffer.write(&objects)?;
@@ -59,8 +59,8 @@ impl<T: Pack> ObjectBuffer<T> {
         ) {
             obj.pack_to(&mut ibuf[..T::size_int()], &mut fbuf[..T::size_float()]);
         }
-        if T::size_int() == 0 { buffer_int = vec![0]; }
-        if T::size_float() == 0 { buffer_float = vec![0.0]; }
+        if objects.len() == 0 || T::size_int() == 0 { buffer_int = vec![0]; }
+        if objects.len() == 0 || T::size_float() == 0 { buffer_float = vec![0.0]; }
 
         if buffer_int.len() == self.buffer_int.len() && buffer_float.len() == self.buffer_float.len() {
             self.buffer_int.cmd()

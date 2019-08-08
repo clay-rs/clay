@@ -42,6 +42,7 @@ Ray __view_emit(
         .dir = normalize(v.x*view_map.s012 + v.y*view_map.s456 - 1.0f*view_map.s89a),
         .color = (float3)(1.0f, 1.0f, 1.0f),
         .origin = -1,
+        .type = RAY_INITIAL,
     };
     return ray;
 }
