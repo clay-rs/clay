@@ -3,8 +3,6 @@ pub use shape::*;
 
 mod bound;
 pub use bound::*;
-mod attractor;
-pub use attractor::*;
 
 mod select;
 

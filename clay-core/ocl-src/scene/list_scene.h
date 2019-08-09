@@ -27,12 +27,16 @@
     objects_count, \
     attractors_count
 
+
 #define MAX_DEPTH 4
+
+#define ATTRACT_THRESHOLD 0.1f
+
 
 int scene_trace(
     uint *seed,
     Ray ray,
-    Ray *new_ray,
+    Ray *new_rays,
     float3 *color,
     SCENE_ARGS_DEF
 ) {
@@ -63,21 +67,51 @@ int scene_trace(
     }
     
     if (hit_idx >= 0) {
+        if (
+            (ray.type == RAY_DIFFUSE && ray.target == hit_idx) ||
+            (ray.type == RAY_ATTRACT && ray.target != hit_idx)
+        ) {
+            return 0;
+        }
+
         float3 hit_pos = ray.start + ray.dir*hit_enter;
 
         __global const int *ibuf = objects_int + object_size_int*hit_idx;
         __global const float *fbuf = objects_float + object_size_float*hit_idx;
-        int num_rays = __object_emit(seed, ray, hit_pos, hit_norm, ibuf, fbuf, new_ray, color);
-        if (num_rays > 0) {
-            new_ray->origin = hit_idx;
+        int num_rays = __object_emit(
+            seed, ray, hit_pos, hit_norm,
+            ibuf, fbuf, &new_rays[0], color
+        );
+        if (num_rays == 1) {
+            int rays_count = 1;
+            new_rays[0].origin = hit_idx;
 
-            // attract
-            int attract_idx = (int)(random_uniform(seed)*attractors_count);
-            __global const int *ibuf = attractors_int + attractor_size_int*attract_idx;
-            __global const float *fbuf = attractors_float + attractor_size_float*attract_idx;
-            
+            // Attraction
+            if (new_rays[0].type == RAY_DIFFUSE) {
+                int attract_idx = (int)(random_uniform(seed)*attractors_count);
+                __global const int *aibuf = attractors_int + attractor_size_int*attract_idx;
+                __global const float *afbuf = attractors_float + attractor_size_float*attract_idx;
 
-            return 1;
+                int target = aibuf[0];
+                Ray attract_ray = ray_new();
+                float weight = 0.0f;
+                int ret = __attract(
+                    seed, new_rays[0], hit_norm, ATTRACT_THRESHOLD,
+                    aibuf, afbuf, &attract_ray, &weight
+                );
+                if (ret >= 0) {
+                    new_rays[0].target = target;
+                    new_rays[0].color *= (1.0f - weight);
+                    if (ret == 1) {
+                        attract_ray.origin = hit_idx;
+                        attract_ray.target = target;
+                        new_rays[1] = attract_ray;
+                        rays_count += 1;
+                    }
+                }
+            }
+
+            return rays_count;
         } else {
             return 0;
         }
@@ -97,12 +131,15 @@ float3 __scene_trace(
     int i = 0;
     Ray current_ray = ray;
     for (i = 0; i < MAX_DEPTH; ++i) {
-        Ray next_ray;
-        int num_rays = scene_trace(seed, current_ray, &next_ray, &color, SCENE_ARGS);
+        Ray next_rays[2] = { ray_new() };
+        int num_rays = scene_trace(seed, current_ray, next_rays, &color, SCENE_ARGS);
         if (num_rays == 0) {
             break;
         }
-        current_ray = next_ray;
+        if (num_rays == 2) {
+            scene_trace(seed, next_rays[1], NULL, &color, SCENE_ARGS);
+        }
+        current_ray = next_rays[0];
     }
     return color;
 }

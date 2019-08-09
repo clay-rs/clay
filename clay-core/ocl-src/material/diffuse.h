@@ -10,11 +10,14 @@ MATERIAL_RET diffuse_emit(
     MATERIAL_ARGS_DEF
 ) {
     new_ray->start = pos;
-    float3 rhc = random_hemisphere_cosine(seed);
+
+    float3 rand_dir = random_hemisphere_cosine(seed);
     matrix3 basis = { .z = norm };
     complement(basis.z, &basis.x, &basis.y);
-    new_ray->dir = matrix3_dot(matrix3_transpose(basis), rhc);
+    new_ray->dir = matrix3_dot(matrix3_transpose(basis), rand_dir);
+
     new_ray->color = ray.color;
     new_ray->type = RAY_DIFFUSE;
+
     return 1;
 }

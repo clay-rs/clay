@@ -14,8 +14,8 @@ float random_uniform(uint *seed) {
 // Uniform distribution on the surface of the unit sphere
 float3 random_sphere(uint *seed) {
     float phi = 2.0f*M_PI_F*random_uniform(seed);
-    float cos_theta = 2.0f*random_uniform(seed) - 1.0f;
-    float sin_theta = sqrt(1.0 - cos_theta*cos_theta);
+    float cos_theta = 1.0f - 2.0f*random_uniform(seed);
+    float sin_theta = sqrt(1.0f - cos_theta*cos_theta);
     return (float3)(cos(phi)*sin_theta, sin(phi)*sin_theta, cos_theta);
 }
 
@@ -23,7 +23,7 @@ float3 random_sphere(uint *seed) {
 float3 random_hemisphere(uint *seed) {
     float phi = 2.0f*M_PI_F*random_uniform(seed);
     float cos_theta = random_uniform(seed);
-    float sin_theta = sqrt(1.0 - cos_theta*cos_theta);
+    float sin_theta = sqrt(1.0f - cos_theta*cos_theta);
     return (float3)(cos(phi)*sin_theta, sin(phi)*sin_theta, cos_theta);
 }
 
@@ -34,15 +34,14 @@ float3 random_hemisphere_cosine(uint *seed) {
     float sin_theta = sqrt(1.0f - sqr_cos_theta);
     return (float3)(cos(phi)*sin_theta, sin(phi)*sin_theta, cos_theta);
 }
-/*
-float3 random_sphere_cap(float3 norm, float cos_alpha, uint *seed) {
-    float3 nx, ny;
-    complement(norm, &nx, &ny);
-    float phi = 2.0f*M_PI_F*random_uniform(seed);
-    float theta = acos(1.0f - (1.0 - cos_alpha)*random_uniform(seed));
-    return nx*cos(phi)*sin(theta) + ny*sin(phi)*sin(theta) + norm*cos(theta);
-}
 
+float3 random_sphere_cap(uint *seed, float cos_alpha) {
+    float phi = 2.0f*M_PI_F*random_uniform(seed);
+    float cos_theta = 1.0f - (1.0f - cos_alpha)*random_uniform(seed);
+    float sin_theta = sqrt(1.0f - cos_theta*cos_theta);
+    return (float3)(cos(phi)*sin_theta, sin(phi)*sin_theta, cos_theta);
+}
+/*
 float2 random_disk(uint *seed)
 {
     float r = sqrt(random_uniform(seed));

@@ -1,5 +1,5 @@
 use std::collections::HashSet;
-use crate::{pack::*, class::*, shape::*, map::*};
+use crate::{pack::*, class::*, shape::*};
 
 
 #[derive(Clone, Debug, Default)]
@@ -31,15 +31,4 @@ impl Pack for Sphere {
     fn size_int() -> usize { 0 }
     fn size_float() -> usize { 0 }
     fn pack_to(&self, _buffer_int: &mut [i32], _buffer_float: &mut [f32]) {}
-}
-
-impl Attractor for Mapper<Sphere, Chain<Scale, Shift>> {}
-
-impl Instance<AttractorClass> for Mapper<Sphere, Chain<Scale, Shift>> {
-    fn source(_: &mut HashSet<u64>) -> String {
-        "#include <clay_core/shape/sphere.h>".to_string()
-    }
-    fn inst_name() -> String {
-        "sphere".to_string()
-    }
 }

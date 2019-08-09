@@ -24,6 +24,8 @@ pub mod material;
 pub use material::{Material, Colored};
 pub mod object;
 pub use object::{Object, Covered};
+pub mod attract;
+pub use attract::{Attractor};
 
 pub mod scene;
 pub use scene::*;

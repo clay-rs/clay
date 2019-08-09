@@ -6,7 +6,7 @@ use ocl::{
 use crate::{
     Context,
     Object,
-    shape::Attractor,
+    Attractor,
     buffer::InstanceBuffer,
 };
 use crate::{Push, Scene};
@@ -31,9 +31,10 @@ impl<T: Object, A: Attractor> Scene for ListScene<T, A> {
         // TODO: iterate over class methods
         [
             T::source(cache),
+            A::source(cache),
             format!("#define __object_hit {}_hit", T::inst_name()),
             format!("#define __object_emit {}_emit", T::inst_name()),
-            format!("#define __attractor_attract {}_attract", A::inst_name()),
+            format!("#define __attract {}_attract", A::inst_name()),
             "#include <clay_core/scene/list_scene.h>".to_string(),
         ]
         .join("\n")
@@ -68,6 +69,6 @@ impl<T: Object, A: Attractor> Push for ListScene<T, A> {
         Ok(())
     }
     fn args_count() -> usize {
-        5
+        10
     }
 }

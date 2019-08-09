@@ -14,3 +14,11 @@ typedef struct {
     int origin;
     int target;
 } Ray;
+
+Ray ray_new() {
+	Ray r = {
+		.type = RAY_INITIAL,
+		.origin = -1,
+		.target = -1
+	};
+}
