@@ -1,8 +1,10 @@
 #[macro_export]
 macro_rules! instance_select {
-    ($Select:ident : $Base:ty : $Class:ty, { $( $Enum:ident($Instance:ty) ),+ $(,)? }) => {
-        pub enum $Select {
-            $( $Enum($Instance), )+
+    ($Select:ident: $Class:ty { $( $Enum:ident($Param:ident = $Instance:ty) ),+ $(,)? }) => {
+        pub enum $Select<
+            $( $Param: $crate::Pack + $crate::Instance<$Class> = $Instance ),+
+        > {
+            $( $Enum($Param), )+
         }
 
         impl $Select {
@@ -108,4 +110,18 @@ macro_rules! instance_select {
             }
         )+
     };
+}
+
+mod check {
+    use crate::{
+        shape::*,
+        instance_select,
+    };
+
+    instance_select!(
+        TestSelect: ShapeClass {
+            Sphere(TS = UnitSphere),
+            Cube(TC = UnitCube),
+        }
+    );
 }

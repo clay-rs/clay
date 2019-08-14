@@ -16,7 +16,7 @@ macro_rules! material_select {
                         return m.brightness()
                     }
                 )+
-                0.0
+                unreachable!()
             }
         }
     };

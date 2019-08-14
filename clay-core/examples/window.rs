@@ -12,7 +12,7 @@ use clay_core::{
 };
 use clay_gui::{Window};
 
-shape_select!(MyShape, {
+shape_select!(MyShape {
     Cube(UnitCube),
     Sphere(UnitSphere),
 });
@@ -39,7 +39,10 @@ fn main() {
 
     let omni_size = 0.25;
     let omni_pos = Vec3::from(0.0, 0.0, 3.5);
-    let objects = vec![
+
+    let mut builder = ListScene::builder();
+
+    builder.add(
         MyShape::from(UnitCube::new())
         .map(
             Linear::from(omni_size*Mat3::<f64>::one())
@@ -47,8 +50,9 @@ fn main() {
         )
         .cover(MyMaterial::from(
             Luminous {}.color_with(100.0*Vec3::from(1.0, 1.0, 1.0)),
-        )),
-
+        ))
+    );
+    builder.add(
         MyShape::from(UnitCube::new())
         .map(
             Linear::from(Mat3::<f64>::from(
@@ -60,8 +64,9 @@ fn main() {
         )
         .cover(MyMaterial::from(
             Diffuse {}.color_with(Vec3::from(0.9, 0.9, 0.9)),
-        )),
-        
+        ))
+    );
+    builder.add(
         MyShape::from(UnitCube::new())
         .map(
             Linear::from(0.4*Mat3::<f64>::one())
@@ -70,8 +75,9 @@ fn main() {
         .cover(MyMaterial::from(Glossy::new(
             (0.1, Reflective {}),
             (0.9, Diffuse {}.color_with(Vec3::from(0.5, 0.5, 0.9))),
-        ))),
-        
+        )))
+    );
+    builder.add(
         MyShape::from(UnitSphere::new())
         .map(
             Linear::from(0.5*Mat3::<f64>::one())
@@ -80,8 +86,9 @@ fn main() {
         .cover(MyMaterial::from(Glossy::new(
             (0.1, Reflective {}),
             (0.9, Diffuse {}.color_with(Vec3::from(0.9, 0.5, 0.5))),
-        ))),
-        
+        )))
+    );
+    builder.add(
         MyShape::from(UnitSphere::new())
         .map(
             Linear::from(0.25*Mat3::<f64>::one())
@@ -89,9 +96,9 @@ fn main() {
         )
         .cover(MyMaterial::from(
             Diffuse {}.color_with(Vec3::from(0.5, 0.9, 0.5)),
-        )),
-    ];
-    let scene = MyScene::new(&context, objects, Vec::new()).unwrap();
+        ))
+    );
+    let scene = builder.build(&context).unwrap();
 
     let mut window = Window::new((1000, 800)).unwrap();
 
