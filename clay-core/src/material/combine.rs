@@ -60,7 +60,14 @@ macro_rules! material_combine {
             }
         }
 
-        impl $crate::Material for $Combine {}
+        impl $crate::Material for $Combine {
+            fn brightness(&self) -> f64 {
+                $(
+                    self.$field.0*self.$field.1.brightness() +
+                )+
+                0.0
+            }
+        }
 
         impl $crate::Instance<$crate::material::MaterialClass> for $Combine {
             fn source(cache: &mut std::collections::HashSet<u64>) -> String {

@@ -51,8 +51,6 @@ macro_rules! instance_select {
             }
         }
 
-        impl $Base for $Select {}
-
         impl $crate::Instance<$Class> for $Select {
             fn source(cache: &mut std::collections::HashSet<u64>) -> String {
                 use $crate::{TypeHash, class::*};

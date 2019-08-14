@@ -7,14 +7,14 @@ use vecmat::{vec::*, mat::*};
 use clay_core::{
     Context, Worker,
     scene::ListScene, view::ProjView, map::*,
-    shape::*, material::*, object::Covered, attract::*,
+    shape::*, material::*, object::Covered,
     shape_select, material_select, material_combine,
 };
 use clay_gui::{Window};
 
 shape_select!(MyShape, {
-    Cube(Cube),
-    Sphere(Sphere),
+    Cube(UnitCube),
+    Sphere(UnitSphere),
 });
 material_combine!(Glossy, {
     reflect: Reflective,
@@ -25,8 +25,8 @@ material_select!( MyMaterial, {
     Glossy(Glossy),
     Luminous(Colored<Luminous>),
 });
-type MyObject = Covered<Mapper<MyShape, Affine>, MyMaterial>;
-type MyScene = ListScene<MyObject, SphereAttractor>;
+type MyObject = Covered<ShapeMapper<MyShape, Affine>, MyMaterial>;
+type MyScene = ListScene<MyObject, Sphere>;
 type MyView = ProjView;
 
 fn main() {
@@ -40,7 +40,7 @@ fn main() {
     let omni_size = 0.25;
     let omni_pos = Vec3::from(0.0, 0.0, 3.5);
     let objects = vec![
-        MyShape::from(Cube::new())
+        MyShape::from(UnitCube::new())
         .map(
             Linear::from(omni_size*Mat3::<f64>::one())
             .chain(Shift::from(omni_pos))
@@ -49,7 +49,7 @@ fn main() {
             Luminous {}.color_with(100.0*Vec3::from(1.0, 1.0, 1.0)),
         )),
 
-        MyShape::from(Cube::new())
+        MyShape::from(UnitCube::new())
         .map(
             Linear::from(Mat3::<f64>::from(
                 5.0, 0.0, 0.0,
@@ -62,7 +62,7 @@ fn main() {
             Diffuse {}.color_with(Vec3::from(0.9, 0.9, 0.9)),
         )),
         
-        MyShape::from(Cube::new())
+        MyShape::from(UnitCube::new())
         .map(
             Linear::from(0.4*Mat3::<f64>::one())
             .chain(Shift::from(Vec3::from(1.0, 0.0, 0.4)))
@@ -72,7 +72,7 @@ fn main() {
             (0.9, Diffuse {}.color_with(Vec3::from(0.5, 0.5, 0.9))),
         ))),
         
-        MyShape::from(Sphere::new())
+        MyShape::from(UnitSphere::new())
         .map(
             Linear::from(0.5*Mat3::<f64>::one())
             .chain(Shift::from(Vec3::from(0.0, 1.0, 0.5)))
@@ -82,7 +82,7 @@ fn main() {
             (0.9, Diffuse {}.color_with(Vec3::from(0.9, 0.5, 0.5))),
         ))),
         
-        MyShape::from(Sphere::new())
+        MyShape::from(UnitSphere::new())
         .map(
             Linear::from(0.25*Mat3::<f64>::one())
             .chain(Shift::from(Vec3::from(0.0, 0.0, 0.25)))
@@ -91,13 +91,7 @@ fn main() {
             Diffuse {}.color_with(Vec3::from(0.5, 0.9, 0.5)),
         )),
     ];
-    let attractors = vec![
-        SphereAttractor::new(Sphere::new().map(
-            Scale::from(omni_size*f64::sqrt(2.0))
-            .chain(Shift::from(omni_pos))
-        ), 0),
-    ];
-    let scene = MyScene::new(&context, objects, attractors).unwrap();
+    let scene = MyScene::new(&context, objects, Vec::new()).unwrap();
 
     let mut window = Window::new((1000, 800)).unwrap();
 

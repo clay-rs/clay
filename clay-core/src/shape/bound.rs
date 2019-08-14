@@ -18,20 +18,16 @@ impl Class for BoundClass {
 }
 
 /// The shape that could be put inside the specified bound.
-pub trait Bounded: Shape {
-    /// Bounding shape.
-    type Bound: Bound;
-
+pub trait Bounded<B: Bound> {
     /// Returns bounding shape instance.
     ///
     /// If the shape is borderless and doesn't fit into any bounding shape
     /// then `None` should be returned.
-    fn bound(&self) -> Option<Self::Bound>;
+    fn bound(&self) -> Option<B>;
 }
 
-impl<T: Bound + Shape + Clone> Bounded for T {
-    type Bound = T;
-    fn bound(&self) -> Option<Self::Bound> {
+impl<T: Bound + Shape + Clone> Bounded<T> for T {
+    fn bound(&self) -> Option<T> {
         Some(self.clone())
     }
 }

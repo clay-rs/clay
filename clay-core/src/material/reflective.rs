@@ -5,7 +5,11 @@ use crate::{pack::*, class::*, material::*};
 #[derive(Clone, Debug, Default)]
 pub struct Reflective {}
 
-impl Material for Reflective {}
+impl Material for Reflective {
+    fn brightness(&self) -> f64 {
+        0.0
+    }
+}
 
 impl Instance<MaterialClass> for Reflective {
     fn source(_: &mut HashSet<u64>) -> String {

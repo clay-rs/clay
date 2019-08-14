@@ -17,15 +17,13 @@ pub mod select;
 pub mod ray;
 pub use ray::{Ray};
 pub mod map;
-pub use map::{Map, Mapper};
+pub use map::{Map};
 pub mod shape;
-pub use shape::{Shape};//, Bound, Bounded};
+pub use shape::{Shape, ShapeMapper, Bound, Bounded, Target};
 pub mod material;
 pub use material::{Material, Colored};
 pub mod object;
-pub use object::{Object, Covered};
-pub mod attract;
-pub use attract::{Attractor};
+pub use object::{Object, ObjectMapper, Covered};
 
 pub mod scene;
 pub use scene::*;

@@ -10,5 +10,5 @@ MATERIAL_RET reflective_emit(
     new_ray->dir = ray.dir - 2.0f*norm*dot(norm, ray.dir);
     new_ray->color = ray.color;
     new_ray->type = RAY_REFLECT;
-    return 1;
+    return true;
 }

@@ -6,69 +6,56 @@ use ocl::{
 use crate::{
     Context,
     Object,
-    Attractor,
+    Target,
     buffer::InstanceBuffer,
 };
 use crate::{Push, Scene};
 
-pub struct ListScene<T: Object, A: Attractor> {
-    objects: Vec<T>,
-    attractors: Vec<A>,
-    object_buffer: InstanceBuffer<T>,
-    attractor_buffer: InstanceBuffer<A>,
+#[allow(dead_code)]
+pub struct ListScene<O: Object, T: Target> {
+    objects: Vec<O>,
+    targets: Vec<T>,
+    object_buffer: InstanceBuffer<O>,
+    target_buffer: InstanceBuffer<T>,
 }
 
-impl<T: Object, A: Attractor> ListScene<T, A> {
-    pub fn new(context: &Context, objects: Vec<T>, attractors: Vec<A>) -> crate::Result<Self> {
+impl<O: Object, T: Target> ListScene<O, T> {
+    pub fn new(context: &Context, objects: Vec<O>, targets: Vec<T>) -> crate::Result<Self> {
         let object_buffer = InstanceBuffer::new(context, &objects)?;
-        let attractor_buffer = InstanceBuffer::new(context, &attractors)?;
-        Ok(Self { objects, attractors, object_buffer, attractor_buffer })
+        let target_buffer = InstanceBuffer::new(context, &targets)?;
+        Ok(Self { objects, targets, object_buffer, target_buffer })
     }
 }
 
-impl<T: Object, A: Attractor> Scene for ListScene<T, A> {
+impl<O: Object, T: Target> Scene for ListScene<O, T> {
     fn source(cache: &mut HashSet<u64>) -> String {
         // TODO: iterate over class methods
         [
+            O::source(cache),
             T::source(cache),
-            A::source(cache),
-            format!("#define __object_hit {}_hit", T::inst_name()),
-            format!("#define __object_emit {}_emit", T::inst_name()),
-            format!("#define __attract {}_attract", A::inst_name()),
+            format!("#define __object_hit {}_hit", O::inst_name()),
+            format!("#define __object_emit {}_emit", O::inst_name()),
+            format!("#define __target_attract {}_attract", T::inst_name()),
             "#include <clay_core/scene/list_scene.h>".to_string(),
         ]
         .join("\n")
     }
 }
 
-impl<T: Object, A: Attractor> Push for ListScene<T, A> {
+impl<O: Object, T: Target> Push for ListScene<O, T> {
     fn args_def(kb: &mut KernelBuilder) {
-        kb
-        .arg(None::<&ocl::Buffer<i32>>)
-        .arg(None::<&ocl::Buffer<f32>>)
-        .arg(None::<&ocl::Buffer<i32>>)
-        .arg(None::<&ocl::Buffer<f32>>)
-        .arg(0i32)
-        .arg(0i32)
-        .arg(0i32)
-        .arg(0i32)
-        .arg(0i32)
-        .arg(0i32);
+        InstanceBuffer::<O>::args_def(kb);
+        InstanceBuffer::<T>::args_def(kb);
     }
     fn args_set(&self, i: usize, k: &mut ocl::Kernel) -> crate::Result<()> {
-        k.set_arg(i + 0, self.object_buffer.buffer_int())?;
-        k.set_arg(i + 1, self.object_buffer.buffer_float())?;
-        k.set_arg(i + 2, self.attractor_buffer.buffer_int())?;
-        k.set_arg(i + 3, self.attractor_buffer.buffer_float())?;
-        k.set_arg(i + 4, T::size_int() as i32)?;
-        k.set_arg(i + 5, T::size_float() as i32)?;
-        k.set_arg(i + 6, A::size_int() as i32)?;
-        k.set_arg(i + 7, A::size_float() as i32)?;
-        k.set_arg(i + 8, self.objects.len() as i32)?;
-        k.set_arg(i + 9, self.attractors.len() as i32)?;
+        let mut j = i;
+        self.object_buffer.args_set(j, k)?;
+        j += InstanceBuffer::<O>::args_count();
+        self.target_buffer.args_set(j, k)?;
         Ok(())
     }
     fn args_count() -> usize {
-        10
+        InstanceBuffer::<O>::args_count() +
+        InstanceBuffer::<T>::args_count()
     }
 }

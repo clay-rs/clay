@@ -9,5 +9,6 @@ macro_rules! object_select {
                 $( $Enum($Object) ),+
             }
         );
+        impl Object for $Select {}
     };
 }

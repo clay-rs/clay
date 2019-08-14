@@ -9,5 +9,6 @@ macro_rules! shape_select {
                 $( $Enum($Shape) ),+
             }
         );
+        impl Shape for $Select {}
     };
 }

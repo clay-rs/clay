@@ -11,6 +11,13 @@ use crate::{
 /// It defines the color, specularity, opacity, diffusion,
 /// radiance and other properties of the object surface. 
 pub trait Material: Pack + Instance<MaterialClass> {
+    /// Brightness of the material.
+    ///
+    /// If the material emits some light,
+    /// the brightnes is equal to maximal color component
+    /// in the light emitted, otherwise it is zero.
+    fn brightness(&self) -> f64;
+
     /// Applies color filter to the material
     fn color_with(self, color: Vec3<f64>) -> Colored<Self> {
         Colored::new(self, color)

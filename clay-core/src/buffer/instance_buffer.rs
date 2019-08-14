@@ -1,10 +1,10 @@
 use std::{
     marker::PhantomData,
 };
-use ocl;
+use ocl::{self, builders::KernelBuilder};
 use crate::{
     Context,
-    Pack,
+    Pack, Push,
 };
 
 
@@ -94,5 +94,28 @@ impl<T: Pack> InstanceBuffer<T> {
     }
     pub fn count(&self) -> usize {
         self.count
+    }
+}
+
+
+impl<T: Pack> Push for InstanceBuffer<T> {
+    fn args_def(kb: &mut KernelBuilder) {
+        kb
+        .arg(None::<&ocl::Buffer<i32>>) // int buffer
+        .arg(None::<&ocl::Buffer<f32>>) // float buffer
+        .arg(0i32) // int size
+        .arg(0i32) // float size
+        .arg(0i32); // instance count
+    }
+    fn args_set(&self, i: usize, k: &mut ocl::Kernel) -> crate::Result<()> {
+        k.set_arg(i + 0, self.buffer_int())?;
+        k.set_arg(i + 1, self.buffer_float())?;
+        k.set_arg(i + 2, Self::size_int() as i32)?;
+        k.set_arg(i + 3, Self::size_float() as i32)?;
+        k.set_arg(i + 4, self.count() as i32)?;
+        Ok(())
+    }
+    fn args_count() -> usize {
+        5
     }
 }

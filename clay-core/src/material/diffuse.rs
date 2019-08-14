@@ -5,7 +5,11 @@ use crate::{pack::*, class::*, material::*};
 #[derive(Clone, Debug, Default)]
 pub struct Diffuse {}
 
-impl Material for Diffuse {}
+impl Material for Diffuse {
+    fn brightness(&self) -> f64 {
+        0.0
+    }
+}
 
 impl Instance<MaterialClass> for Diffuse {
     fn source(_: &mut HashSet<u64>) -> String {

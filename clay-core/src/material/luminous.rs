@@ -5,7 +5,11 @@ use crate::{pack::*, class::*, material::*};
 #[derive(Clone, Debug, Default)]
 pub struct Luminous {}
 
-impl Material for Luminous {}
+impl Material for Luminous {
+    fn brightness(&self) -> f64 {
+        1.0
+    }
+}
 
 impl Instance<MaterialClass> for Luminous {
     fn source(_: &mut HashSet<u64>) -> String {

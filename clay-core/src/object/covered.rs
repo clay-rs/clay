@@ -68,3 +68,9 @@ impl<S: Shape, M: Material> Pack for Covered<S, M> {
         .pack(&self.material);
     }
 }
+
+impl<B: Bound, S: Shape + Bounded<B>, M: Material> Bounded<B> for Covered<S, M> {
+    fn bound(&self) -> Option<B> {
+        self.shape.bound()
+    }
+}

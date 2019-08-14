@@ -19,5 +19,5 @@ MATERIAL_RET diffuse_emit(
     new_ray->color = ray.color;
     new_ray->type = RAY_DIFFUSE;
 
-    return 1;
+    return true;
 }

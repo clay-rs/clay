@@ -3,7 +3,7 @@ use vecmat::{mat::*};
 use crate::{pack::*, class::*, map::*};
 
 
-pub struct Linear(Mat3<f64>);
+pub struct Linear(pub Mat3<f64>);
 
 impl From<Mat3<f64>> for Linear {
     fn from(x: Mat3<f64>) -> Self {

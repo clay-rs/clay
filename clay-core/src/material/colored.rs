@@ -20,7 +20,12 @@ impl<M: Material> Colored<M> {
     }
 }
 
-impl<M: Material> Material for Colored<M> {}
+impl<M: Material> Material for Colored<M> {
+    fn brightness(&self) -> f64 {
+        self.material.brightness()*
+        self.color.data.iter().fold(0.0, |a, b| f64::max(a, *b))
+    }
+}
 
 impl<M: Material> Instance<MaterialClass> for Colored<M> {
     fn source(cache: &mut HashSet<u64>) -> String {

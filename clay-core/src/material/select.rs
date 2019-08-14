@@ -9,5 +9,15 @@ macro_rules! material_select {
                 $( $Enum($Material) ),+
             }
         );
+        impl Material for $Select {
+            fn brightness(&self) -> f64 {
+                $(
+                    if let $Select::$Enum(m) = self {
+                        return m.brightness()
+                    }
+                )+
+                0.0
+            }
+        }
     };
 }
