@@ -5,7 +5,7 @@ macro_rules! _replace {
 
 #[macro_export]
 macro_rules! material_combine {
-    ($Combine:ident, { $( $field:ident : $Material:ty ),+ $(,)? }) => {
+    ($Combine:ident { $( $field:ident : $Material:ty ),+ $(,)? }) => {
         pub struct $Combine {
             $( pub $field: (f64, $Material), )+
         }
@@ -114,4 +114,17 @@ macro_rules! material_combine {
             }
         }
     };
+}
+
+#[allow(dead_code)]
+mod _check {
+    use crate::{
+        material::*,
+        material_combine,
+    };
+
+    material_combine!(TestCombine {
+        reflect: Reflective,
+        diffuse: Diffuse,
+    });
 }

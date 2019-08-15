@@ -1,8 +1,13 @@
 #[macro_export]
 macro_rules! instance_select {
-    ($Select:ident: $Class:ty { $( $Enum:ident($Param:ident = $Instance:ty) ),+ $(,)? }) => {
+    ($Select:ident: $Base:path: $Class:ty { $( $Enum:ident($Param:ident = $Instance:ty) ),+ $(,)? }) => {
         pub enum $Select<
-            $( $Param: $crate::Pack + $crate::Instance<$Class> = $Instance ),+
+            $( $Param:
+                $crate::Pack +
+                $crate::Instance<$Class> +
+                $Base
+                = $Instance
+            ),+
         > {
             $( $Enum($Param), )+
         }
@@ -92,13 +97,9 @@ macro_rules! instance_select {
                 use $crate::pack::*;
                 self.index().pack_int_to(buffer_int);
                 buffer_int = &mut buffer_int[1..];
-                $(
-                    if let $Select::$Enum(x) = self {
-                        x.pack_to(buffer_int, buffer_float);
-                        return;
-                    }
-                )+
-                unreachable!()
+                match self {
+                    $( $Select::$Enum(x) => x.pack_to(buffer_int, buffer_float), )+
+                }
             }
         }
 
@@ -112,14 +113,15 @@ macro_rules! instance_select {
     };
 }
 
-mod check {
+#[allow(dead_code)]
+mod _check {
     use crate::{
         shape::*,
         instance_select,
     };
 
     instance_select!(
-        TestSelect: ShapeClass {
+        TestSelect: Shape: ShapeClass {
             Sphere(TS = UnitSphere),
             Cube(TC = UnitCube),
         }

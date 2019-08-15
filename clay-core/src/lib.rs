@@ -19,7 +19,7 @@ pub use ray::{Ray};
 pub mod map;
 pub use map::{Map};
 pub mod shape;
-pub use shape::{Shape, ShapeMapper, Bound, Bounded, Target};
+pub use shape::{Shape, ShapeMapper, Bound, Bounded, Target, Targeted};
 pub mod material;
 pub use material::{Material, Colored};
 pub mod object;

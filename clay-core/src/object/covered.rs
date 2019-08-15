@@ -74,3 +74,10 @@ impl<B: Bound, S: Shape + Bounded<B>, M: Material> Bounded<B> for Covered<S, M> 
         self.shape.bound()
     }
 }
+
+impl<T: Bound + Target, S: Shape + Bounded<T>, M: Material> Targeted<T> for Covered<S, M> {
+    fn target(&self) -> Option<(T, f64)> {
+        self.shape.bound()
+        .map(|t| (t, self.material.brightness()))
+    }
+}

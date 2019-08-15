@@ -13,17 +13,17 @@ use clay_core::{
 use clay_gui::{Window};
 
 shape_select!(MyShape {
-    Cube(UnitCube),
-    Sphere(UnitSphere),
+    Cube(TC=UnitCube),
+    Sphere(TS=UnitSphere),
 });
-material_combine!(Glossy, {
+material_combine!(Glossy {
     reflect: Reflective,
     diffuse: Colored<Diffuse>,
 });
-material_select!( MyMaterial, {
-    Matte(Colored<Diffuse>),
-    Glossy(Glossy),
-    Luminous(Colored<Luminous>),
+material_select!(MyMaterial {
+    Matte(TM=Colored<Diffuse>),
+    Glossy(TG=Glossy),
+    Luminous(TC=Colored<Luminous>),
 });
 type MyObject = Covered<ShapeMapper<MyShape, Affine>, MyMaterial>;
 type MyScene = ListScene<MyObject, Sphere>;

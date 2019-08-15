@@ -2,30 +2,33 @@
 macro_rules! shape_select {
     ( $Select:ident { $( $Enum:ident ( $Param:ident = $Shape:ty ) ),+ $(,)? } ) => {
         $crate::instance_select!(
-            $Select: $crate::shape::ShapeClass {
+            $Select: $crate::Shape: $crate::shape::ShapeClass {
                 $( $Enum($Param = $Shape) ),+
             }
         );
-        impl Shape for $Select {}
+        impl $crate::Shape for $Select {}
+        
         impl<
-            B: Bound,
+            B_: $crate::Bound,
             $(
                 $Param: 
-                    $crate::Pack +
-                    $crate::Instance<$crate::shape::ShapeClass> +
-                    Bounded<B>
+                    $crate::Shape +
+                    $crate::Bounded<B_>
             ),+
-        > Bounded<B> for $Select<
+        > Bounded<B_> for $Select<
             $( $Param ),+
         > {
-            fn bound(&self) -> B {
-                
+            fn bound(&self) -> Option<B_> {
+                match self {
+                    $( $Select::$Enum(x) => x.bound(), )+
+                }
             }
         }
     };
 }
 
-mod check {
+#[allow(dead_code)]
+mod _check {
     use crate::{
         shape::*,
         shape_select,
