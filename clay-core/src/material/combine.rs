@@ -29,7 +29,11 @@ macro_rules! material_combine {
             fn method_source(method: &str) -> String {
                 use $crate::{pack::*, class::*, material::*};
 
-                let cpref = MaterialClass::name().to_uppercase();
+                let cpref = format!(
+                    "{}_{}",
+                    MaterialClass::name(),
+                    method,
+                ).to_uppercase();
 
                 let mut cases = Vec::new();
                 let (mut si, mut sf) = (0, 0);

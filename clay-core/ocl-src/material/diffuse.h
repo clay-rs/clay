@@ -6,8 +6,8 @@
 #include "material.h"
 
 
-MATERIAL_RET diffuse_emit(
-    MATERIAL_ARGS_DEF
+MATERIAL_EMIT_RET diffuse_emit(
+    MATERIAL_EMIT_ARGS_DEF
 ) {
     new_ray->start = pos;
 

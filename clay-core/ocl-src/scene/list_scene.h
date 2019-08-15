@@ -32,7 +32,7 @@
 
 #define MAX_DEPTH 4
 
-#define ATTRACT_THRESHOLD 0.1f
+#define TARGET_THRESHOLD 0.1f
 
 
 bool scene_trace(
@@ -71,7 +71,7 @@ bool scene_trace(
     if (hit_idx >= 0) {
         if (
             (ray.type == RAY_DIFFUSE && ray.target == hit_idx) ||
-            (ray.type == RAY_ATTRACT && ray.target != hit_idx)
+            (ray.type == RAY_TARGET && ray.target != hit_idx)
         ) {
             return 0;
         }
@@ -98,7 +98,7 @@ bool scene_trace(
                 Ray attract_ray = ray_new();
                 float weight = 0.0f;
                 int ret = __attract(
-                    seed, new_rays[0], hit_norm, ATTRACT_THRESHOLD,
+                    seed, new_rays[0], hit_norm, TARGET_THRESHOLD,
                     aibuf, afbuf, &attract_ray, &weight
                 );
                 if (ret >= 0) {

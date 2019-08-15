@@ -28,7 +28,11 @@ macro_rules! instance_select {
             #[allow(unused_assignments)]
             fn method_source(method: &str) -> String {
                 use $crate::class::*;
-                let cpref = <$Class>::name().to_uppercase();
+                let cpref = format!(
+                    "{}_{}",
+                    <$Class>::name(),
+                    method,
+                ).to_uppercase();
 
                 let mut cases = Vec::new();
                 let mut i = 0;

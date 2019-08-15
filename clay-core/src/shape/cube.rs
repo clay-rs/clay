@@ -42,6 +42,12 @@ impl Pack for UnitCube {
 
 pub type Parallelepiped = ShapeMapper<UnitCube, Affine>;
 
+impl Parallelepiped {
+    pub fn build(ori: Mat3<f64>, pos: Vec3<f64>) -> Self {
+        UnitCube::new().map(Linear::from(ori).chain(Shift::from(pos)))
+    }
+}
+
 impl Bounded<Sphere> for Parallelepiped {
     fn bound(&self) -> Option<Sphere> {
         let pos = self.map.second.0;
@@ -58,6 +64,6 @@ impl Bounded<Sphere> for Parallelepiped {
                 rad = len;
             }
         }
-        Some(Sphere::build(pos, rad))
+        Some(Sphere::build(rad, pos))
     }
 }

@@ -1,5 +1,6 @@
 use std::collections::HashSet;
-use vecmat::{vec::*};
+use nalgebra::{Matrix3, linalg::SVD};
+use vecmat::{vec::*, mat::*};
 use crate::{
     pack::*,
     class::*,
@@ -20,20 +21,16 @@ impl UnitSphere {
     pub fn new() -> Self {
         Self {}
     }
-
-    fn source(_: &mut HashSet<u64>) -> String {
+    fn source() -> String {
         "#include <clay_core/shape/sphere.h>".to_string()
-    }
-    fn inst_name() -> String {
-        "sphere".to_string()
     }
 }
 
 impl Shape for UnitSphere {}
 
 impl Instance<ShapeClass> for UnitSphere {
-    fn source(cache: &mut HashSet<u64>) -> String { Self::source(cache) }
-    fn inst_name() -> String { Self::inst_name() }
+    fn source(_: &mut HashSet<u64>) -> String { Self::source() }
+    fn inst_name() -> String { "unitsphere".to_string() }
 }
 
 impl Pack for UnitSphere {
@@ -46,24 +43,40 @@ impl Pack for UnitSphere {
 pub type Sphere = ShapeMapper<UnitSphere, Chain<Scale, Shift>>;
 
 impl Sphere {
-    pub fn build(pos: Vec3<f64>, rad: f64) -> Self {
+    pub fn build(rad: f64, pos: Vec3<f64>) -> Self {
         UnitSphere::new().map(Scale::from(rad).chain(Shift::from(pos)))
     }
 }
 
 impl Bound for Sphere {}
-
 impl Instance<BoundClass> for Sphere {
-    fn source(cache: &mut HashSet<u64>) -> String { UnitSphere::source(cache) }
-    fn inst_name() -> String { UnitSphere::inst_name() }
+    fn source(_: &mut HashSet<u64>) -> String { UnitSphere::source() }
+    fn inst_name() -> String { "sphere".to_string() }
 }
 
 impl Target for Sphere {}
-
 impl Instance<TargetClass> for Sphere {
-    fn source(cache: &mut HashSet<u64>) -> String { UnitSphere::source(cache) }
-    fn inst_name() -> String { UnitSphere::inst_name() }
+    fn source(_: &mut HashSet<u64>) -> String { UnitSphere::source() }
+    fn inst_name() -> String { "sphere_target".to_string() }
 }
 
 
 pub type Ellipsoid = ShapeMapper<UnitSphere, Affine>;
+
+impl Ellipsoid {
+    pub fn build(ori: Mat3<f64>, pos: Vec3<f64>) -> Self {
+        UnitSphere::new().map(Linear::from(ori).chain(Shift::from(pos)))
+    }
+}
+
+impl Bounded<Sphere> for Ellipsoid {
+    fn bound(&self) -> Option<Sphere> {
+        let rad = SVD::new(
+            Matrix3::from_row_slice(&self.map.first.0.data),
+            false, false,
+        )
+        .singular_values.as_slice().iter()
+        .fold(std::f64::NAN, |a, b| f64::max(a, *b));
+        Some(Sphere::build(rad, self.map.second.0))
+    }
+}

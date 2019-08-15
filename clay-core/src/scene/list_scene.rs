@@ -40,17 +40,18 @@ type Element<O, T> = (O, Option<(T, f64)>);
 
 
 #[allow(dead_code)]
-pub struct ListSceneBuilder<O: Object, T: Target> {
+pub struct ListSceneBuilder<O: Object + Targeted<T>, T: Target> {
     elements: Vec<Element<O, T>>,
 }
 
-impl<O: Object, T: Target> ListSceneBuilder<O, T> {
+impl<O: Object + Targeted<T>, T: Target> ListSceneBuilder<O, T> {
     pub fn add(&mut self, object: O) -> &mut Self {
         self.elements.push((object, None));
         self
     }
-    pub fn add_targeted(&mut self, object: O, target: (T, f64)) -> &mut Self {
-        self.elements.push((object, Some(target)));
+    pub fn add_targeted(&mut self, object: O) -> &mut Self {
+        let target_opt = object.target();
+        self.elements.push((object, target_opt));
         self
     }
     pub fn build(self, context: &Context) -> crate::Result<ListScene<O, T>> {
@@ -63,7 +64,7 @@ pub struct ListScene<O: Object, T: Target> {
     target_buffer: InstanceBuffer<TargetData<T>>,
 }
 
-impl<O: Object, T: Target> ListScene<O, T> {
+impl<O: Object + Targeted<T>, T: Target> ListScene<O, T> {
     pub fn new(context: &Context, elements: Vec<Element<O, T>>) -> crate::Result<Self> {
         let mut objects = Vec::new();
         let mut targets = Vec::new();
@@ -83,7 +84,7 @@ impl<O: Object, T: Target> ListScene<O, T> {
     }
 }
 
-impl<O: Object, T: Target> Scene for ListScene<O, T> {
+impl<O: Object + Targeted<T>, T: Target> Scene for ListScene<O, T> {
     fn source(cache: &mut HashSet<u64>) -> String {
         // TODO: iterate over class methods
         [
@@ -91,14 +92,14 @@ impl<O: Object, T: Target> Scene for ListScene<O, T> {
             T::source(cache),
             format!("#define __object_hit {}_hit", O::inst_name()),
             format!("#define __object_emit {}_emit", O::inst_name()),
-            format!("#define __target_attract {}_attract", T::inst_name()),
+            //format!("#define __target_attract {}_attract", T::inst_name()),
             "#include <clay_core/scene/list_scene.h>".to_string(),
         ]
         .join("\n")
     }
 }
 
-impl<O: Object, T: Target> Push for ListScene<O, T> {
+impl<O: Object + Targeted<T>, T: Target> Push for ListScene<O, T> {
     fn args_def(kb: &mut KernelBuilder) {
         InstanceBuffer::<O>::args_def(kb);
         InstanceBuffer::<TargetData<T>>::args_def(kb);

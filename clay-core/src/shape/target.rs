@@ -14,7 +14,10 @@ impl Class for TargetClass {
         "target".to_string()
     }
     fn methods() -> Vec<String> {
-        vec!["attract".to_string()]
+        vec![
+            "size".to_string(),
+            "sample".to_string(),
+        ]
     }
 }
 

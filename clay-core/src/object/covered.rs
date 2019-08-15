@@ -27,7 +27,7 @@ impl<S: Shape, M: Material> Instance<ObjectClass> for Covered<S, M> {
         if !cache.insert(Self::type_hash()) {
             return String::new()
         }
-        let cpref = MaterialClass::name().to_uppercase();
+        let cpref = format!("{}_EMIT", MaterialClass::name().to_uppercase());
         [
             S::source(cache),
             M::source(cache),

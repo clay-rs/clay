@@ -6,15 +6,15 @@ use ocl::{Platform, Device};
 use vecmat::{vec::*, mat::*};
 use clay_core::{
     Context, Worker,
-    scene::ListScene, view::ProjView, map::*,
+    scene::ListScene, view::ProjView,
     shape::*, material::*, object::Covered,
     shape_select, material_select, material_combine,
 };
 use clay_gui::{Window};
 
 shape_select!(MyShape {
-    Cube(TC=UnitCube),
-    Sphere(TS=UnitSphere),
+    Cube(TC=Parallelepiped),
+    Sphere(TS=Ellipsoid),
 });
 material_combine!(Glossy {
     reflect: Reflective,
@@ -25,7 +25,7 @@ material_select!(MyMaterial {
     Glossy(TG=Glossy),
     Luminous(TC=Colored<Luminous>),
 });
-type MyObject = Covered<ShapeMapper<MyShape, Affine>, MyMaterial>;
+type MyObject = Covered<MyShape, MyMaterial>;
 type MyScene = ListScene<MyObject, Sphere>;
 type MyView = ProjView;
 
@@ -41,64 +41,59 @@ fn main() {
     let omni_pos = Vec3::from(0.0, 0.0, 3.5);
 
     let mut builder = ListScene::builder();
-
     builder.add(
-        MyShape::from(UnitCube::new())
-        .map(
-            Linear::from(omni_size*Mat3::<f64>::one())
-            .chain(Shift::from(omni_pos))
-        )
+        MyShape::from(Parallelepiped::build(
+            omni_size*Mat3::<f64>::one(),
+            omni_pos,
+        ))
         .cover(MyMaterial::from(
             Luminous {}.color_with(100.0*Vec3::from(1.0, 1.0, 1.0)),
         ))
     );
     builder.add(
-        MyShape::from(UnitCube::new())
-        .map(
-            Linear::from(Mat3::<f64>::from(
+        MyShape::from(Parallelepiped::build(
+            Mat3::<f64>::from(
                 5.0, 0.0, 0.0,
                 0.0, 5.0, 0.0,
                 0.0, 0.0, 0.1,
-            ))
-            .chain(Shift::from(Vec3::from(0.0, 0.0, -0.1)))
-        )
+            ),
+            Vec3::from(0.0, 0.0, -0.1),
+        ))
         .cover(MyMaterial::from(
             Diffuse {}.color_with(Vec3::from(0.9, 0.9, 0.9)),
         ))
     );
     builder.add(
-        MyShape::from(UnitCube::new())
-        .map(
-            Linear::from(0.4*Mat3::<f64>::one())
-            .chain(Shift::from(Vec3::from(1.0, 0.0, 0.4)))
-        )
+        MyShape::from(Parallelepiped::build(
+            0.4*Mat3::<f64>::one(),
+            Vec3::from(1.0, 0.0, 0.4),
+        ))
         .cover(MyMaterial::from(Glossy::new(
             (0.1, Reflective {}),
             (0.9, Diffuse {}.color_with(Vec3::from(0.5, 0.5, 0.9))),
         )))
     );
     builder.add(
-        MyShape::from(UnitSphere::new())
-        .map(
-            Linear::from(0.5*Mat3::<f64>::one())
-            .chain(Shift::from(Vec3::from(0.0, 1.0, 0.5)))
-        )
+        MyShape::from(Ellipsoid::build(
+            0.5*Mat3::<f64>::one(),
+            Vec3::from(0.0, 1.0, 0.5),
+        ))
         .cover(MyMaterial::from(Glossy::new(
             (0.1, Reflective {}),
             (0.9, Diffuse {}.color_with(Vec3::from(0.9, 0.5, 0.5))),
         )))
     );
-    builder.add(
-        MyShape::from(UnitSphere::new())
-        .map(
-            Linear::from(0.25*Mat3::<f64>::one())
-            .chain(Shift::from(Vec3::from(0.0, 0.0, 0.25)))
-        )
+    builder.add_targeted(
+        MyShape::from(Ellipsoid::build(
+            0.25*Mat3::<f64>::one(),
+            Vec3::from(0.0, 0.0, 0.25),
+        ))
         .cover(MyMaterial::from(
             Diffuse {}.color_with(Vec3::from(0.5, 0.9, 0.5)),
         ))
     );
     let scene = builder.build(&context).unwrap();
+
 
     let mut window = Window::new((1000, 800)).unwrap();
 
