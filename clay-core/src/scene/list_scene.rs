@@ -92,7 +92,8 @@ impl<O: Object + Targeted<T>, T: Target> Scene for ListScene<O, T> {
             T::source(cache),
             format!("#define __object_hit {}_hit", O::inst_name()),
             format!("#define __object_emit {}_emit", O::inst_name()),
-            //format!("#define __target_attract {}_attract", T::inst_name()),
+            format!("#define __target_size {}_size", T::inst_name()),
+            format!("#define __target_sample {}_sample", T::inst_name()),
             "#include <clay_core/scene/list_scene.h>".to_string(),
         ]
         .join("\n")

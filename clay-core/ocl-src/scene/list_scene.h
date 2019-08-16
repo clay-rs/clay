@@ -78,51 +78,48 @@ bool scene_trace(
 
         float3 hit_pos = ray.start + ray.dir*hit_enter;
 
+        // Attract
+        int target_idx = 0;
+        __global const int *tibuf = target_buffer_int + target_size_int*target_idx;
+        __global const float *tfbuf = target_buffer_float + target_size_float*target_idx;
+
+        int target = tibuf[0];
+        float brightness = tfbuf[0];
+        float target_size = __target_size(hit_pos, tibuf + 1, tfbuf + 1);
+        bool directed = false;
+        float3 target_dir = (float3)(0.0f);
+        if (target_size < TARGET_THRESHOLD) {
+            float prob = brightness*target_size;
+            prob /= (1.0f + prob);
+            if (random_uniform(seed) < prob) {
+                directed = true;
+                target_dir = __target_sample(seed, hit_pos, target_size, tibuf + 1, tfbuf + 1);
+            }
+        }
+
+        // Sample material
         __global const int *ibuf = object_buffer_int + object_size_int*hit_idx;
         __global const float *fbuf = object_buffer_float + object_size_float*hit_idx;
         bool bounce = __object_emit(
             seed, ray, hit_pos, hit_norm,
+            directed, target_dir, target_size,
             ibuf, fbuf, new_ray, color
         );
         if (bounce) {
             new_ray->origin = hit_idx;
-
-            // Attraction
-            /*
-            if (new_rays[0].type == RAY_DIFFUSE) {
-                int attract_idx = (int)(random_uniform(seed)*targets_count);
-                __global const int *aibuf = targets_int + target_size_int*attract_idx;
-                __global const float *afbuf = targets_float + target_size_float*attract_idx;
-
-                int target = aibuf[0];
-                Ray attract_ray = ray_new();
-                float weight = 0.0f;
-                int ret = __attract(
-                    seed, new_rays[0], hit_norm, TARGET_THRESHOLD,
-                    aibuf, afbuf, &attract_ray, &weight
-                );
-                if (ret >= 0) {
-                    new_rays[0].target = target;
-                    new_rays[0].color *= (1.0f - weight);
-                    if (ret == 1) {
-                        attract_ray.origin = hit_idx;
-                        attract_ray.target = target;
-                        new_rays[1] = attract_ray;
-                        rays_count += 1;
-                    }
-                }
+            if (directed) {
+                new_ray->target = target;
+                new_ray->type = RAY_TARGET;
             }
-            */
-
             return true;
-        } else {
-            return false;
         }
-    } else {
-        float z = 0.5f*(ray.dir.z + 1.0f);
-        *color += ray.color*z*(float3)(0.2, 0.2, 0.4);
         return false;
     }
+
+    // Background
+    float z = 0.5f*(ray.dir.z + 1.0f);
+    *color += ray.color*z*(float3)(0.2, 0.2, 0.4);
+    return false;
 }
 
 float3 __scene_trace(

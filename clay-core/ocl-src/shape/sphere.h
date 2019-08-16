@@ -1,7 +1,11 @@
 #pragma once
 
 #include <clay_core/ray.h>
-#include "shape.h"
+#include <clay_core/random.h>
+#include <clay_core/matrix.h>
+#include <clay_core/linalg.h>
+#include <clay_core/shape/shape.h>
+#include <clay_core/shape/target.h>
 
 
 SHAPE_HIT_RET unitsphere_hit(
@@ -25,64 +29,37 @@ SHAPE_HIT_RET unitsphere_hit(
     return true;
 }
 
-/*
 TARGET_SIZE_RET sphere_target_size(
     TARGET_SIZE_ARGS_DEF
 ) {
     float rad = fbuf[0];
-    float3 tpos = vload3(0, fbuf + 1);
+    float3 spos = vload3(0, fbuf + 1);
 
-    float3 dir = tpos - pos;
-    float len = length(dir);
-    dir /= len;
+    float3 dir = spos - pos;
+    float len2 = dot(dir, dir);
     
-    float sin_alpha = rad/len;
-    if (
-        (sin_alpha > threshold) ||
-        (sin_alpha + dot(dir, norm) < 0.0f)
-    ) {
-        return -1;
+    float sin_alpha_2 = (rad*rad)/len2;
+    if (sin_alpha_2 >= 1.0f) {
+        return 2.0f;
     }
-    float cos_alpha = sqrt(1.0f - sin_alpha*sin_alpha);
-
-    return cos_alpha;
+    float cos_alpha = sqrt(1.0f - sin_alpha_2);
+    return 1.0f - cos_alpha;
 }
 
 TARGET_SAMPLE_RET sphere_target_sample(
     TARGET_SAMPLE_ARGS_DEF
 ) {
     float rad = fbuf[0];
-    float3 pos = vload3(0, fbuf + 1);
+    float3 spos = vload3(0, fbuf + 1);
 
-    float3 dir = pos - ray.start;
-    float len = length(dir);
-    dir /= len;
-    
-    float sin_alpha = rad/len;
-    if (
-        (sin_alpha > threshold) ||
-        (sin_alpha + dot(dir, norm) < 0.0f)
-    ) {
-        return -1;
-    }
-    float cos_alpha = sqrt(1.0f - sin_alpha*sin_alpha);
-    *weight = 1.0f - cos_alpha;
+    float3 dir = normalize(spos - pos);
 
-    new_ray->start = ray.start;
+    float cos_alpha = 1.0f - size;
 
     float3 rand_dir = random_sphere_cap(seed, cos_alpha);
     matrix3 basis = { .z = dir };
     complement(basis.z, &basis.x, &basis.y);
-    new_ray->dir = matrix3_dot(matrix3_transpose(basis), rand_dir);
+    float3 new_dir = matrix3_dot(matrix3_transpose(basis), rand_dir);
 
-    float asc = dot(new_ray->dir, norm);
-    if (asc < 0.0f) {
-        return 0;
-    }
-
-    new_ray->color = *weight*2.0f*asc*ray.color;
-    new_ray->type = RAY_ATTRACT;
-
-    return 1;
+    return new_dir;
 }
-*/

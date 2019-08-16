@@ -6,6 +6,9 @@
 MATERIAL_EMIT_RET reflective_emit(
     MATERIAL_EMIT_ARGS_DEF
 ) {
+    if (directed) {
+        return false;
+    }
     new_ray->start = pos;
     new_ray->dir = ray.dir - 2.0f*norm*dot(norm, ray.dir);
     new_ray->color = ray.color;

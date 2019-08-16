@@ -41,7 +41,7 @@ fn main() {
     let omni_pos = Vec3::from(0.0, 0.0, 3.5);
 
     let mut builder = ListScene::builder();
-    builder.add(
+    builder.add_targeted(
         MyShape::from(Parallelepiped::build(
             omni_size*Mat3::<f64>::one(),
             omni_pos,
@@ -83,7 +83,7 @@ fn main() {
             (0.9, Diffuse {}.color_with(Vec3::from(0.9, 0.5, 0.5))),
         )))
     );
-    builder.add_targeted(
+    builder.add(
         MyShape::from(Ellipsoid::build(
             0.25*Mat3::<f64>::one(),
             Vec3::from(0.0, 0.0, 0.25),

@@ -11,19 +11,17 @@ typedef struct {
     float3 dir;
     float3 color;
     uchar type;
-    bool face;
     int origin;
     int target;
 } Ray;
 
 Ray ray_new() {
-	Ray r = {
+    Ray r = {
         .start = (float3)(0.0f),
         .dir   = (float3)(0.0f),
         .color = (float3)(0.0f),
-		.type = RAY_INITIAL,
-        .face = true,
-		.origin = -1,
-		.target = -1
-	};
+        .type = RAY_INITIAL,
+        .origin = -1,
+        .target = -1
+    };
 }

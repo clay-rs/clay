@@ -3,32 +3,31 @@
 #include <clay_core/ray.h>
 
 
-#define TARGET_SIZE_RET bool
+// returns angular size of the target
+#define TARGET_SIZE_RET float
 
 #define TARGET_SIZE_ARGS_DEF \
-    float3 pos, float3 norm, \
+    float3 pos, \
     __global const int *ibuf, \
-    __global const float *fbuf, \
-    float *cos_alpha, float3 *dir
+    __global const float *fbuf
 
 #define TARGET_SIZE_ARGS \
-    pos, norm, ibuf, fbuf, cos_alpha, dir
+    pos, ibuf, fbuf
 
 #define TARGET_SIZE_ARGS_B(di, df) \
-    pos, norm, ibuf + (di), fbuf + (df), cos_alpha, dir
+    pos, ibuf + (di), fbuf + (df)
 
 
-#define TARGET_SAMPLE_RET bool
+// returns sample direction
+#define TARGET_SAMPLE_RET float3
 
 #define TARGET_SAMPLE_ARGS_DEF \
-    uint *seed, float cos_alpha, float dir, \
-    float3 pos, float3 norm, \
+    uint *seed, float3 pos, float size, \
     __global const int *ibuf, \
-    __global const float *fbuf, \
-    float3 *new_dir, float *weight
+    __global const float *fbuf
 
 #define TARGET_SAMPLE_ARGS \
-    seed, cos_alpha, dir, pos, norm, ibuf, fbuf, new_dir, weight
+    seed, pos, size, ibuf, fbuf
 
 #define TARGET_SAMPLE_ARGS_B(di, df) \
-    seed, cos_alpha, dir, pos, norm, ibuf + (di), fbuf + (df), new_dir, weight
+    seed, pos, size, ibuf + (di), fbuf + (df)

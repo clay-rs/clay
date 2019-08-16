@@ -77,6 +77,7 @@ impl Bounded<Sphere> for Ellipsoid {
         )
         .singular_values.as_slice().iter()
         .fold(std::f64::NAN, |a, b| f64::max(a, *b));
+        println!("{:?}", self.map.second.0);
         Some(Sphere::build(rad, self.map.second.0))
     }
 }
