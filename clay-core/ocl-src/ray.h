@@ -1,16 +1,14 @@
 #pragma once
 
-#define RAY_INITIAL 0
-#define RAY_DIFFUSE 1
-#define RAY_REFLECT 2
-#define RAY_REFRACT 3
-#define RAY_TARGET  4
+#define RAY_INITIAL  0
+#define RAY_DIFFUSE  (1<<0)
+#define RAY_TARGETED (1<<1)
 
 typedef struct {
     float3 start;
     float3 dir;
     float3 color;
-    uchar type;
+    uint history;
     int origin;
     int target;
 } Ray;
@@ -20,7 +18,7 @@ Ray ray_new() {
         .start = (float3)(0.0f),
         .dir   = (float3)(0.0f),
         .color = (float3)(0.0f),
-        .type = RAY_INITIAL,
+        .history = RAY_INITIAL,
         .origin = -1,
         .target = -1
     };

@@ -37,17 +37,23 @@ fn main() {
     let mut worker = Worker::<MyScene, MyView>::new(&context).unwrap();
     File::create("__gen_kernel.c").unwrap().write_all(worker.programs().render.source().as_bytes()).unwrap();
 
-    let omni_size = 0.25;
-    let omni_pos = Vec3::from(0.0, 0.0, 3.5);
-
     let mut builder = ListScene::builder();
     builder.add_targeted(
         MyShape::from(Parallelepiped::build(
-            omni_size*Mat3::<f64>::one(),
-            omni_pos,
+            0.25*Mat3::<f64>::one(),
+            Vec3::from(-2.0, 0.0, 5.0),
         ))
         .cover(MyMaterial::from(
-            Luminous {}.color_with(100.0*Vec3::from(1.0, 1.0, 1.0)),
+            Luminous {}.color_with(100.0*Vec3::from(1.0, 1.0, 0.5)),
+        ))
+    );
+    builder.add_targeted(
+        MyShape::from(Ellipsoid::build(
+            0.2*Mat3::<f64>::one(),
+            Vec3::from(0.0, -2.0, 2.5),
+        ))
+        .cover(MyMaterial::from(
+            Luminous {}.color_with(100.0*Vec3::from(0.2, 0.2, 1.0)),
         ))
     );
     builder.add(
@@ -65,18 +71,18 @@ fn main() {
     );
     builder.add(
         MyShape::from(Parallelepiped::build(
-            0.4*Mat3::<f64>::one(),
-            Vec3::from(1.0, 0.0, 0.4),
+            0.25*Mat3::<f64>::one(),
+            Vec3::from(1.0, 0.0, 0.25),
         ))
         .cover(MyMaterial::from(Glossy::new(
-            (0.1, Reflective {}),
-            (0.9, Diffuse {}.color_with(Vec3::from(0.5, 0.5, 0.9))),
+            (0.2, Reflective {}),
+            (0.8, Diffuse {}.color_with(Vec3::from(0.5, 0.5, 0.9))),
         )))
     );
     builder.add(
         MyShape::from(Ellipsoid::build(
-            0.5*Mat3::<f64>::one(),
-            Vec3::from(0.0, 1.0, 0.5),
+            0.25*Mat3::<f64>::one(),
+            Vec3::from(0.0, 1.0, 0.25),
         ))
         .cover(MyMaterial::from(Glossy::new(
             (0.1, Reflective {}),
@@ -85,8 +91,8 @@ fn main() {
     );
     builder.add(
         MyShape::from(Ellipsoid::build(
-            0.25*Mat3::<f64>::one(),
-            Vec3::from(0.0, 0.0, 0.25),
+            0.5*Mat3::<f64>::one(),
+            Vec3::from(0.0, 0.0, 0.5),
         ))
         .cover(MyMaterial::from(
             Diffuse {}.color_with(Vec3::from(0.5, 0.9, 0.5)),

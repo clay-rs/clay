@@ -3,8 +3,8 @@
 #include "material.h"
 
 
-MATERIAL_EMIT_RET luminous_emit(
-    MATERIAL_EMIT_ARGS_DEF
+MATERIAL_BOUNCE_RET luminous_bounce(
+    MATERIAL_BOUNCE_ARGS_DEF
 ) {
     *color += ray.color;
     return false;

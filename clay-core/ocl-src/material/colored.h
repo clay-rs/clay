@@ -4,7 +4,7 @@
 
 
 #define COLORED_MATERIAL_FN_DEF(colored_material, material, mdi, mdf) \
-    MATERIAL_EMIT_RET colored_material##_emit(MATERIAL_EMIT_ARGS_DEF) { \
+    MATERIAL_BOUNCE_RET colored_material##_bounce(MATERIAL_BOUNCE_ARGS_DEF) { \
         ray.color *= vload3(0, fbuf + mdf); \
-        return material##_emit(MATERIAL_EMIT_ARGS); \
+        return material##_bounce(MATERIAL_BOUNCE_ARGS); \
     }

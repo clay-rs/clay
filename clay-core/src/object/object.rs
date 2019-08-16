@@ -1,6 +1,8 @@
 use crate::{
     Pack,
     class::*,
+    shape::*,
+    material::*,
 };
 
 
@@ -13,9 +15,8 @@ impl Class for ObjectClass {
         "object".to_string()
     }
     fn methods() -> Vec<String> {
-        vec![
-            "hit".to_string(),
-            "emit".to_string(),
-        ]
+        let mut methods = ShapeClass::methods();
+        methods.append(&mut MaterialClass::methods());
+        methods
     }
 }

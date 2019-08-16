@@ -30,7 +30,7 @@ impl Shape for UnitSphere {}
 
 impl Instance<ShapeClass> for UnitSphere {
     fn source(_: &mut HashSet<u64>) -> String { Self::source() }
-    fn inst_name() -> String { "unitsphere".to_string() }
+    fn inst_name() -> String { "unit_sphere".to_string() }
 }
 
 impl Pack for UnitSphere {

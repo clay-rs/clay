@@ -6,8 +6,8 @@
 #include <clay_core/material/material.h>
 
 
-MATERIAL_EMIT_RET diffuse_emit(
-    MATERIAL_EMIT_ARGS_DEF
+MATERIAL_BOUNCE_RET diffuse_bounce(
+    MATERIAL_BOUNCE_ARGS_DEF
 ) {
     new_ray->start = pos;
 
@@ -26,7 +26,7 @@ MATERIAL_EMIT_RET diffuse_emit(
         new_ray->color = 2.0f*cos_theta*size*ray.color;
     }
 
-    new_ray->type = RAY_DIFFUSE;
+    new_ray->history = ray.history | RAY_DIFFUSE;
 
     return true;
 }

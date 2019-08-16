@@ -23,17 +23,13 @@ impl<O: Object, M: Map> Instance<ObjectClass> for Mapper<O, M> {
         [
             O::source(cache),
             M::source(cache),
+            "#include <clay_core/object/mapper.h>".to_string(),
             format!(
                 "MAP_OBJECT_FN_DEF({}, {}, {}, {}, {})",
                 Self::inst_name(),
                 O::inst_name(),
                 M::inst_name(),
                 O::size_int(), O::size_float(),
-            ),
-            format!(
-                "#define {}_emit {}_emit",
-                Self::inst_name(),
-                O::inst_name(),
             ),
         ].join("\n")
     }

@@ -15,7 +15,6 @@ impl Class for TargetClass {
     }
     fn methods() -> Vec<String> {
         vec![
-            "size".to_string(),
             "sample".to_string(),
         ]
     }

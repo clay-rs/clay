@@ -30,6 +30,6 @@ impl Class for MaterialClass {
         "material".to_string()
     }
     fn methods() -> Vec<String> {
-        vec!["emit".to_string()]
+        vec!["bounce".to_string()]
     }
 }

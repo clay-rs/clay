@@ -2,13 +2,13 @@
 
 
 // Random 32-bit integer from linear congruential generator
-uint random_next(uint *seed) {
+uint _random(uint *seed) {
     return (*seed = 1103515245**seed + 12345);
 }
 
 // Uniform random distribution between 0 (including) and 1 (excluding)
 float random_uniform(uint *seed) {
-    return (float)random_next(seed)/(float)0x100000000;
+    return (float)_random(seed)/(float)0x100000000;
 }
 
 // Uniform distribution on the surface of the unit sphere

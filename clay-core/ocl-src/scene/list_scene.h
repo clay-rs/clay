@@ -69,47 +69,54 @@ bool scene_trace(
     }
     
     if (hit_idx >= 0) {
-        if (
-            (ray.type == RAY_DIFFUSE && ray.target == hit_idx) ||
-            (ray.type == RAY_TARGET && ray.target != hit_idx)
-        ) {
-            return 0;
+        if (ray.history & RAY_TARGETED) {
+            if (ray.target != hit_idx) {
+                return false;
+            }
+        } else if (ray.history & RAY_DIFFUSE) {
+            int j = 0;
+            for (j = 0; j < targets_count; ++j) {
+                int target_idx = (target_buffer_int + target_size_int*j)[0];
+                if (hit_idx == target_idx) {
+                    return false;
+                }
+            }
         }
 
         float3 hit_pos = ray.start + ray.dir*hit_enter;
 
-        // Attract
-        int target_idx = 0;
-        __global const int *tibuf = target_buffer_int + target_size_int*target_idx;
-        __global const float *tfbuf = target_buffer_float + target_size_float*target_idx;
-
-        int target = tibuf[0];
-        float brightness = tfbuf[0];
-        float target_size = __target_size(hit_pos, tibuf + 1, tfbuf + 1);
+        // Sample target
+        int target = -1;
         bool directed = false;
+        float target_size = 0.0f;
         float3 target_dir = (float3)(0.0f);
-        if (target_size < TARGET_THRESHOLD) {
-            float prob = brightness*target_size;
-            prob /= (1.0f + prob);
-            if (random_uniform(seed) < prob) {
-                directed = true;
-                target_dir = __target_sample(seed, hit_pos, target_size, tibuf + 1, tfbuf + 1);
-            }
+        if (random_uniform(seed) > 0.5) {
+            int target_idx = floor(random_uniform(seed)*targets_count);
+            __global const int *tibuf = target_buffer_int + target_size_int*target_idx;
+            __global const float *tfbuf = target_buffer_float + target_size_float*target_idx;
+
+            //float brightness = tfbuf[0];
+            target = tibuf[0];
+            target_size = __target_sample(seed, hit_pos, tibuf + 1, tfbuf + 1, &target_dir);
+            directed = true;
         }
 
-        // Sample material
+        // Bounce from material
         __global const int *ibuf = object_buffer_int + object_size_int*hit_idx;
         __global const float *fbuf = object_buffer_float + object_size_float*hit_idx;
-        bool bounce = __object_emit(
+        bool bounce = __object_bounce(
             seed, ray, hit_pos, hit_norm,
             directed, target_dir, target_size,
             ibuf, fbuf, new_ray, color
         );
-        if (bounce) {
+        if (bounce && !(ray.history & RAY_TARGETED)) {
             new_ray->origin = hit_idx;
             if (directed) {
                 new_ray->target = target;
-                new_ray->type = RAY_TARGET;
+                new_ray->history |= RAY_TARGETED;
+                new_ray->color *= 2.0f*targets_count; // reverse probability of specific target sampling
+            } else {
+                new_ray->color *= 2.0f; // reverse probability of not sampling any target
             }
             return true;
         }

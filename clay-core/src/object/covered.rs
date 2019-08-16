@@ -18,6 +18,38 @@ impl<S: Shape, M: Material> Covered<S, M> {
     pub fn new(shape: S, material: M) -> Self {
         Self { shape, material }
     }
+
+    fn shape_source(cache: &mut HashSet<u64>) -> String {
+        [
+            S::source(cache),
+            ShapeClass::methods().into_iter().map(|method| {
+                format!(
+                    "#define {}_{} {}_{}",
+                    Self::inst_name(), method,
+                    S::inst_name(), method,
+                )
+            }).collect::<Vec<_>>().join("\n"),
+        ].join("\n")
+    }
+
+    fn material_source(cache: &mut HashSet<u64>) -> String {
+        [
+            M::source(cache),
+            MaterialClass::methods().into_iter().map(|method| {
+                let cpref = format!("{}_{}", MaterialClass::name(), method).to_uppercase();
+                [
+                    &format!("{}_RET {}_{}(", cpref, Self::inst_name(), method),
+                    &format!("\t{}_ARGS_DEF", cpref),
+                    ") {",
+                    &format!(
+                        "\treturn {}_{}({}_ARGS_B({}, {}));",
+                        M::inst_name(), method, cpref, S::size_int(), S::size_float(),
+                    ),
+                    "}",
+                ].join("\n")
+            }).collect::<Vec<_>>().join("\n"),
+        ].join("\n")
+    }
 }
 
 impl<S: Shape, M: Material> Object for Covered<S, M> {}
@@ -27,26 +59,9 @@ impl<S: Shape, M: Material> Instance<ObjectClass> for Covered<S, M> {
         if !cache.insert(Self::type_hash()) {
             return String::new()
         }
-        let cpref = format!("{}_EMIT", MaterialClass::name().to_uppercase());
         [
-            S::source(cache),
-            M::source(cache),
-            [
-                format!(
-                    "#define {}_hit {}_hit",
-                    Self::inst_name(),
-                    S::inst_name(),
-                ),
-                "".to_string(),
-                format!("{}_RET {}_emit(", cpref, Self::inst_name()),
-                format!("\t{}_ARGS_DEF", cpref),
-                ") {".to_string(),
-                format!(
-                    "\treturn {}_emit({}_ARGS_B({}, {}));",
-                    M::inst_name(), cpref, S::size_int(), S::size_float(),
-                ),
-                "}".to_string(),
-            ].join("\n")
+            Self::shape_source(cache),
+            Self::material_source(cache),
         ].join("\n")
     }
     fn inst_name() -> String {

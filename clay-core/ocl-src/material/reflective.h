@@ -3,8 +3,8 @@
 #include "material.h"
 
 
-MATERIAL_EMIT_RET reflective_emit(
-    MATERIAL_EMIT_ARGS_DEF
+MATERIAL_BOUNCE_RET reflective_bounce(
+    MATERIAL_BOUNCE_ARGS_DEF
 ) {
     if (directed) {
         return false;
@@ -12,6 +12,6 @@ MATERIAL_EMIT_RET reflective_emit(
     new_ray->start = pos;
     new_ray->dir = ray.dir - 2.0f*norm*dot(norm, ray.dir);
     new_ray->color = ray.color;
-    new_ray->type = RAY_REFLECT;
+    new_ray->history = ray.history;
     return true;
 }

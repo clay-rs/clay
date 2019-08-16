@@ -6,6 +6,7 @@ use ocl::{
 use crate::{
     Context,
     pack::*,
+    class::*,
     shape::*,
     object::*,
     buffer::InstanceBuffer,
@@ -90,10 +91,18 @@ impl<O: Object + Targeted<T>, T: Target> Scene for ListScene<O, T> {
         [
             O::source(cache),
             T::source(cache),
-            format!("#define __object_hit {}_hit", O::inst_name()),
-            format!("#define __object_emit {}_emit", O::inst_name()),
-            format!("#define __target_size {}_size", T::inst_name()),
-            format!("#define __target_sample {}_sample", T::inst_name()),
+            ObjectClass::methods().into_iter().map(|method| {
+                format!(
+                    "#define __object_{} {}_{}",
+                    method, O::inst_name(), method,
+                )
+            }).collect::<Vec<_>>().join("\n"),
+            TargetClass::methods().into_iter().map(|method| {
+                format!(
+                    "#define __target_{} {}_{}",
+                    method, T::inst_name(), method,
+                )
+            }).collect::<Vec<_>>().join("\n"),
             "#include <clay_core/scene/list_scene.h>".to_string(),
         ]
         .join("\n")

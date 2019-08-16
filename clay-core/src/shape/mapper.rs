@@ -23,6 +23,7 @@ impl<S: Shape, M: Map> Instance<ShapeClass> for Mapper<S, M> {
         [
             S::source(cache),
             M::source(cache),
+            "#include <clay_core/shape/mapper.h>".to_string(),
             format!(
                 "MAP_SHAPE_FN_DEF({}, {}, {}, {}, {})",
                 Self::inst_name(),
