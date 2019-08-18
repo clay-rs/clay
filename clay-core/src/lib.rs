@@ -14,8 +14,6 @@ pub mod class;
 pub use class::*;
 pub mod select;
 
-pub mod ray;
-pub use ray::{Ray};
 pub mod map;
 pub use map::{Map};
 pub mod shape;

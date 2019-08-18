@@ -1,12 +1,12 @@
 use std::collections::HashSet;
-use vecmat::{mat::*};
+use nalgebra::{Matrix3};
 use crate::{pack::*, class::*, map::*};
 
 
-pub struct Linear(pub Mat3<f64>);
+pub struct Linear(pub Matrix3<f64>);
 
-impl From<Mat3<f64>> for Linear {
-    fn from(x: Mat3<f64>) -> Self {
+impl From<Matrix3<f64>> for Linear {
+    fn from(x: Matrix3<f64>) -> Self {
         Linear(x)
     }
 }
@@ -24,13 +24,13 @@ impl Instance<MapClass> for Linear {
 
 impl Pack for Linear {
     fn size_int() -> usize {
-        2*Mat3::<f64>::size_int()
+        2*Matrix3::<f64>::size_int()
     }
     fn size_float() -> usize {
-        2*Mat3::<f64>::size_float()
+        2*Matrix3::<f64>::size_float()
     }
     fn pack_to(&self, buffer_int: &mut [i32], buffer_float: &mut [f32]) {
-        let inverse = self.0.inverse();
+        let inverse = self.0.try_inverse().unwrap();
         Packer::new(buffer_int, buffer_float)
         .pack(&self.0)
         .pack(&inverse);

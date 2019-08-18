@@ -1,4 +1,4 @@
-use vecmat::{vec::*, mat::*};
+use nalgebra::{Scalar, Vector3, Matrix3};
 
 
 /// Something that could be packed to `i32` buffers
@@ -129,39 +129,40 @@ impl Pack for f64 {
     }
 }
 
-impl<T: PackFloat + Copy> PackFloat for Vec3<T> {
+impl<T: PackFloat + Scalar> PackFloat for Vector3<T> {
     fn size() -> usize { 3*T::size() }
     fn pack_float_to(&self, mut buffer: &mut [f32]) {
-        for x in self.iter() {
+        for x in self.as_slice() {
             buffer = buffer.pack(x);
         }
     }
 }
-impl<T: Pack + Copy> Pack for Vec3<T> {
+impl<T: Pack + Scalar> Pack for Vector3<T> {
     fn size_int() -> usize { 3*T::size_int() }
     fn size_float() -> usize { 3*T::size_float() }
     fn pack_to(&self, buffer_int: &mut [i32], buffer_float: &mut [f32]) {
         let mut packer = Packer::new(buffer_int, buffer_float);
-        for x in self.iter() {
+        for x in self.as_slice() {
             packer = packer.pack(x);
         }
     }
 }
 
-impl<T: PackFloat + Copy> PackFloat for Mat3<T> {
+
+impl<T: PackFloat + Scalar> PackFloat for Matrix3<T> {
     fn size() -> usize { 9*T::size() }
     fn pack_float_to(&self, mut buffer: &mut [f32]) {
-        for x in self.iter() {
+        for x in self.as_slice() {
             buffer = buffer.pack(x);
         }
     }
 }
-impl<T: Pack + Copy> Pack for Mat3<T> {
+impl<T: Pack + Scalar> Pack for Matrix3<T> {
     fn size_int() -> usize { 9*T::size_int() }
     fn size_float() -> usize { 9*T::size_float() }
     fn pack_to(&self, buffer_int: &mut [i32], buffer_float: &mut [f32]) {
         let mut packer = Packer::new(buffer_int, buffer_float);
-        for x in self.iter() {
+        for x in self.as_slice() {
             packer = packer.pack(x);
         }
     }

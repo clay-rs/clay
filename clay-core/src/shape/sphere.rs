@@ -1,6 +1,5 @@
 use std::collections::HashSet;
-use nalgebra::{Matrix3, linalg::SVD};
-use vecmat::{vec::*, mat::*};
+use nalgebra::{Vector3, Matrix3, linalg::SVD};
 use crate::{
     pack::*,
     class::*,
@@ -43,7 +42,7 @@ impl Pack for UnitSphere {
 pub type Sphere = ShapeMapper<UnitSphere, Chain<Scale, Shift>>;
 
 impl Sphere {
-    pub fn build(rad: f64, pos: Vec3<f64>) -> Self {
+    pub fn build(rad: f64, pos: Vector3<f64>) -> Self {
         UnitSphere::new().map(Scale::from(rad).chain(Shift::from(pos)))
     }
 }
@@ -64,7 +63,7 @@ impl Instance<TargetClass> for Sphere {
 pub type Ellipsoid = ShapeMapper<UnitSphere, Affine>;
 
 impl Ellipsoid {
-    pub fn build(ori: Mat3<f64>, pos: Vec3<f64>) -> Self {
+    pub fn build(ori: Matrix3<f64>, pos: Vector3<f64>) -> Self {
         UnitSphere::new().map(Linear::from(ori).chain(Shift::from(pos)))
     }
 }
@@ -72,12 +71,11 @@ impl Ellipsoid {
 impl Bounded<Sphere> for Ellipsoid {
     fn bound(&self) -> Option<Sphere> {
         let rad = SVD::new(
-            Matrix3::from_row_slice(&self.map.first.0.data),
+            self.map.first.0,
             false, false,
         )
         .singular_values.as_slice().iter()
         .fold(std::f64::NAN, |a, b| f64::max(a, *b));
-        println!("{:?}", self.map.second.0);
         Some(Sphere::build(rad, self.map.second.0))
     }
 }

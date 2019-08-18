@@ -3,7 +3,7 @@ use std::{
     fs::File,
 };
 use ocl::{Platform, Device};
-use vecmat::{vec::*, mat::*};
+use nalgebra::{Vector3, Matrix3};
 use clay_core::{
     Context, Worker,
     scene::ListScene, view::ProjView,
@@ -40,62 +40,58 @@ fn main() {
     let mut builder = ListScene::builder();
     builder.add_targeted(
         MyShape::from(Parallelepiped::build(
-            0.25*Mat3::<f64>::one(),
-            Vec3::from(-2.0, 0.0, 5.0),
+            0.25*Matrix3::identity(),
+            Vector3::new(-2.0, 0.0, 5.0),
         ))
         .cover(MyMaterial::from(
-            Luminous {}.color_with(100.0*Vec3::from(1.0, 1.0, 0.5)),
+            Luminous {}.color_with(100.0*Vector3::new(1.0, 1.0, 0.5)),
         ))
     );
     builder.add_targeted(
         MyShape::from(Ellipsoid::build(
-            0.2*Mat3::<f64>::one(),
-            Vec3::from(0.0, -2.0, 2.5),
+            0.2*Matrix3::identity(),
+            Vector3::new(0.0, -2.0, 2.5),
         ))
         .cover(MyMaterial::from(
-            Luminous {}.color_with(100.0*Vec3::from(0.2, 0.2, 1.0)),
+            Luminous {}.color_with(100.0*Vector3::new(0.2, 0.2, 1.0)),
         ))
     );
     builder.add(
         MyShape::from(Parallelepiped::build(
-            Mat3::<f64>::from(
-                5.0, 0.0, 0.0,
-                0.0, 5.0, 0.0,
-                0.0, 0.0, 0.1,
-            ),
-            Vec3::from(0.0, 0.0, -0.1),
+            Matrix3::from_diagonal(&Vector3::new(5.0, 5.0, 0.1)),
+            Vector3::new(0.0, 0.0, -0.1),
         ))
         .cover(MyMaterial::from(
-            Diffuse {}.color_with(Vec3::from(0.9, 0.9, 0.9)),
+            Diffuse {}.color_with(Vector3::new(0.9, 0.9, 0.9)),
         ))
     );
     builder.add(
         MyShape::from(Parallelepiped::build(
-            0.25*Mat3::<f64>::one(),
-            Vec3::from(1.0, 0.0, 0.25),
+            0.25*Matrix3::identity(),
+            Vector3::new(1.0, 0.0, 0.25),
         ))
         .cover(MyMaterial::from(Glossy::new(
             (0.2, Reflective {}),
-            (0.8, Diffuse {}.color_with(Vec3::from(0.5, 0.5, 0.9))),
+            (0.8, Diffuse {}.color_with(Vector3::new(0.5, 0.5, 0.9))),
         )))
     );
     builder.add(
         MyShape::from(Ellipsoid::build(
-            0.25*Mat3::<f64>::one(),
-            Vec3::from(0.0, 1.0, 0.25),
+            0.25*Matrix3::identity(),
+            Vector3::new(0.0, 1.0, 0.25),
         ))
         .cover(MyMaterial::from(Glossy::new(
             (0.1, Reflective {}),
-            (0.9, Diffuse {}.color_with(Vec3::from(0.9, 0.5, 0.5))),
+            (0.9, Diffuse {}.color_with(Vector3::new(0.9, 0.5, 0.5))),
         )))
     );
     builder.add(
         MyShape::from(Ellipsoid::build(
-            0.5*Mat3::<f64>::one(),
-            Vec3::from(0.0, 0.0, 0.5),
+            0.5*Matrix3::identity(),
+            Vector3::new(0.0, 0.0, 0.5),
         ))
         .cover(MyMaterial::from(
-            Diffuse {}.color_with(Vec3::from(0.5, 0.9, 0.5)),
+            Diffuse {}.color_with(Vector3::new(0.5, 0.9, 0.5)),
         ))
     );
     let scene = builder.build(&context).unwrap();
@@ -105,8 +101,8 @@ fn main() {
 
     window.start(&context, |screen, pos, map| {
         let view = ProjView {
-            pos: pos + Vec3::from(0.0, -1.0, 0.5),
-            ori: map,
+            pos: pos + Vector3::new(0.0, -2.0, 1.0),
+            ori: map.matrix().clone(),
         };
         worker.render(screen, &scene, &view)
     }).unwrap();

@@ -90,7 +90,7 @@ bool scene_trace(
         bool directed = false;
         float target_size = 0.0f;
         float3 target_dir = (float3)(0.0f);
-        if (random_uniform(seed) > 0.5) {
+        if (random_uniform(seed) > 0.5f) {
             int target_idx = floor(random_uniform(seed)*targets_count);
             __global const int *tibuf = target_buffer_int + target_size_int*target_idx;
             __global const float *tfbuf = target_buffer_float + target_size_float*target_idx;
@@ -125,7 +125,7 @@ bool scene_trace(
 
     // Background
     float z = 0.5f*(ray.dir.z + 1.0f);
-    *color += ray.color*z*(float3)(0.2, 0.2, 0.4);
+    *color += ray.color*z*(float3)(0.2f, 0.2f, 0.4f);
     return false;
 }
 

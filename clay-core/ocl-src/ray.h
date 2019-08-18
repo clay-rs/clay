@@ -22,4 +22,5 @@ Ray ray_new() {
         .origin = -1,
         .target = -1
     };
+    return r;
 }

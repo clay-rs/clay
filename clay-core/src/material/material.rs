@@ -1,4 +1,4 @@
-use vecmat::vec::*;
+use nalgebra::{Vector3};
 use crate::{
     Pack,
     class::*,
@@ -19,7 +19,7 @@ pub trait Material: Pack + Instance<MaterialClass> {
     fn brightness(&self) -> f64;
 
     /// Applies color filter to the material
-    fn color_with(self, color: Vec3<f64>) -> Colored<Self> {
+    fn color_with(self, color: Vector3<f64>) -> Colored<Self> {
         Colored::new(self, color)
     }
 }

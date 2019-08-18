@@ -7,7 +7,7 @@ float _cube_hit_nearest(float3 near, float3 *norm) {
     bool xy = near.x > near.y;
     bool yz = near.y > near.z;
     bool xz = near.x > near.z;
-    float dist = 0.0;
+    float dist = 0.0f;
     if (xy && xz) {
         dist = near.x;
         norm->x = 1.0f;

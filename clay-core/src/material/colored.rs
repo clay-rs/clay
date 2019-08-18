@@ -1,5 +1,5 @@
 use std::collections::HashSet;
-use vecmat::vec::*;
+use nalgebra::Vector3;
 use crate::{
     pack::*,
     class::*,
@@ -8,14 +8,14 @@ use crate::{
 };
 
 
-#[derive(Clone, Debug, Default)]
+#[derive(Clone, Debug)]
 pub struct Colored<M: Material> {
     pub material: M,
-    pub color: Vec3<f64>,
+    pub color: Vector3<f64>,
 }
 
 impl<M: Material> Colored<M> {
-    pub fn new(material: M, color: Vec3<f64>) -> Self {
+    pub fn new(material: M, color: Vector3<f64>) -> Self {
         Self { material, color }
     }
 }

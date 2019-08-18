@@ -55,8 +55,7 @@ impl Program {
         })
         .map_err(|e| {
             let message = LOCATION.replace_all(&e.to_string(), |caps: &Captures| -> String {
-                if &caps[1] == "<kernel>" { Ok(()) } else { Err(()) }
-                .and_then(|()| caps[2].parse::<usize>().map_err(|_| ()))
+                caps[2].parse::<usize>().map_err(|_| ())
                 .and_then(|line| {
                     // extra `- 1` is a workaround because ocl line numbers are shifted
                     self.index.search(line - 1 - 1).ok_or(())
