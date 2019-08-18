@@ -13,9 +13,9 @@ use crate::{
 };
 use super::{Program};
 
-pub struct Programs {
-    pub render: Program,
-    pub draw: Program,
+pub struct Programs<P> {
+    pub render: P,
+    pub draw: P,
 }
 
 pub struct Kernels {
@@ -23,18 +23,27 @@ pub struct Kernels {
     draw: ocl::Kernel,
 }
 
+pub struct WorkerBuilder<S: Scene, V: View> {
+    programs: Programs<Program>,
+    phantom: PhantomData<(S, V)>,
+}
+
 #[allow(dead_code)]
 pub struct Worker<S: Scene, V: View> {
-    programs: Programs,
+    programs: Programs<(Program, String)>,
     kernels: Kernels,
     queue: ocl::Queue,
     phantom: PhantomData<(S, V)>,
 }
 
-impl<S: Scene, V: View> Worker<S, V> {
-    pub fn new(context: &Context) -> crate::Result<Self> {
-        let queue = context.queue().clone();
+impl<S: Scene, V: View> WorkerBuilder<S, V> {
+    pub fn programs(&self) -> &Programs<Program> {
+        &self.programs
+    }
+}
 
+impl<S: Scene, V: View> Worker<S, V> {
+    pub fn builder() -> crate::Result<WorkerBuilder<S, V>> {
         let mut inst_cache = HashSet::<u64>::new();
         let render_prog = Program::new(
             &ListHook::builder()
@@ -48,11 +57,26 @@ impl<S: Scene, V: View> Worker<S, V> {
             .build(),
             &Path::new("clay_core/render.c"),
         )?;
+
+        let draw_prog = Program::new(&get_ocl_src(), &Path::new("clay_core/draw.c"))?;
+
+        Ok(WorkerBuilder {
+            programs: Programs { render: render_prog, draw: draw_prog },
+            phantom: PhantomData,
+        })
+    }
+}
+
+impl<S: Scene, V: View> WorkerBuilder<S, V> {
+    pub fn build(self, context: &Context) -> crate::Result<Worker<S, V>> {
+        let queue = context.queue().clone();
+
+        let render_prog = self.programs.render;
         let ocl_render_prog = render_prog.build(context)?;
 
         // build kernel
         let mut kb = ocl::Kernel::builder();
-        kb.program(&ocl_render_prog)
+        kb.program(&ocl_render_prog.0)
         .name("render")
         .queue(queue.clone())
         .arg(prm::Int2::zero()) // screen size
@@ -63,10 +87,10 @@ impl<S: Scene, V: View> Worker<S, V> {
         let render_kernel = kb.build()?;
 
         // draw program
-        let draw_prog = Program::new(&get_ocl_src(), &Path::new("clay_core/draw.c"))?;
+        let draw_prog = self.programs.draw;
         let ocl_draw_prog = draw_prog.build(context)?;
         let draw_kernel = ocl::Kernel::builder()
-        .program(&ocl_draw_prog)
+        .program(&ocl_draw_prog.0)
         .name("draw")
         .queue(queue.clone())
         .arg(prm::Int2::zero()) // screen size
@@ -75,14 +99,19 @@ impl<S: Scene, V: View> Worker<S, V> {
         .arg(None::<&ocl::Buffer<u8>>) // screen
         .build()?;
 
-        Ok(Self {
-            programs: Programs { render: render_prog, draw: draw_prog },
+        Ok(Worker {
+            programs: Programs {
+                render: (render_prog, ocl_render_prog.1),
+                draw: (draw_prog, ocl_draw_prog.1),
+            },
             kernels: Kernels { render: render_kernel, draw: draw_kernel },
             queue, phantom: PhantomData,
         })
     }
+}
 
-    pub fn programs(&self) -> &Programs {
+impl<S: Scene, V: View> Worker<S, V> {
+    pub fn programs(&self) -> &Programs<(Program, String)> {
         &self.programs
     }
 

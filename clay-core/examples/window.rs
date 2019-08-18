@@ -1,6 +1,7 @@
 use std::{
+    env,
     io::Write,
-    fs::File,
+    fs::{File, create_dir_all},
 };
 use ocl::{Platform, Device};
 use nalgebra::{Vector3, Matrix3};
@@ -29,13 +30,40 @@ type MyObject = Covered<MyShape, MyMaterial>;
 type MyScene = ListScene<MyObject, Sphere>;
 type MyView = ProjView;
 
+
 fn main() {
-    let platform = Platform::default();
+    let args = env::args().collect::<Vec<_>>();
+    let platform = if args.len() > 1 {
+        let platform_list = Platform::list();
+        let index = args[1].parse::<usize>().unwrap();
+        assert!(platform_list.len() > index);
+        platform_list[index]
+    } else {
+        Platform::default()
+    };
     let device = Device::first(platform).unwrap();
 
     let context = Context::new(platform, device).unwrap();
-    let mut worker = Worker::<MyScene, MyView>::new(&context).unwrap();
-    File::create("__gen_kernel.c").unwrap().write_all(worker.programs().render.source().as_bytes()).unwrap();
+    let worker_builder = Worker::<MyScene, MyView>::builder().unwrap();
+    
+    create_dir_all("./__gen_programs").unwrap();
+    for (name, prog) in [
+        ("render", &worker_builder.programs().render),
+        ("draw", &worker_builder.programs().draw),
+    ].iter() {
+        File::create(&format!("__gen_programs/{}.c", name)).unwrap()
+        .write_all(prog.source().as_bytes()).unwrap();
+    }
+
+    let mut worker = worker_builder.build(&context).unwrap();
+    for (name, msg) in [
+        ("render", &worker.programs().render.1),
+        ("draw", &worker.programs().draw.1),
+    ].iter() {
+        if msg.len() > 0 {
+            println!("'{}' build log:\n{}", name, msg);
+        }
+    }
 
     let mut builder = ListScene::builder();
     builder.add_targeted(

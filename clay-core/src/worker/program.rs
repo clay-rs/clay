@@ -34,7 +34,25 @@ impl Program {
         self.source.clone()
     }
 
-    pub fn build(&self, context: &Context) -> crate::Result<ocl::Program> {
+    fn replace_index(&self, message: &str) -> String {
+        LOCATION.replace_all(&message, |caps: &Captures| -> String {
+            caps[2].parse::<usize>().map_err(|_| ())
+            .and_then(|line| {
+                self.index.search(line - 1).ok_or(())
+            })
+            .and_then(|(path, local_line)| {
+                Ok(format!(
+                    "{}:{}:{}:",
+                    path.to_string_lossy(),
+                    local_line + 1,
+                    &caps[3],
+                ))
+            })
+            .unwrap_or(caps[0].to_string())
+        }).into_owned()
+    }
+
+    pub fn build(&self, context: &Context) -> crate::Result<(ocl::Program, String)> {
         ocl::Program::builder()
         .devices(context.device())
         .source(self.source.clone())
@@ -49,27 +67,12 @@ impl Program {
                 if log.len() > 0 {
                     println!("Build log: {}", log);
                 }
-                p
+                (p, self.replace_index(&log))
             })
             .map_err(|e| e.into())
         })
         .map_err(|e| {
-            let message = LOCATION.replace_all(&e.to_string(), |caps: &Captures| -> String {
-                caps[2].parse::<usize>().map_err(|_| ())
-                .and_then(|line| {
-                    // extra `- 1` is a workaround because ocl line numbers are shifted
-                    self.index.search(line - 1 - 1).ok_or(())
-                })
-                .and_then(|(path, local_line)| {
-                    Ok(format!(
-                        "{}:{}:{}:",
-                        path.to_string_lossy(),
-                        local_line,
-                        &caps[3],
-                    ))
-                })
-                .unwrap_or(caps[0].to_string())
-            }).into_owned();
+            let message = self.replace_index(&e.to_string());
             ocl::Error::from(ocl::core::Error::from(message))
         })
         .map_err(|e| e.into())
