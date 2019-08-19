@@ -25,6 +25,3 @@ regex = "1"
 
 [build-dependencies]
 walkdir = "2"
-
-[dev-dependencies]
-clay-gui = { path = "../clay-gui" }

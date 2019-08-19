@@ -1,6 +1,6 @@
 use std::collections::HashSet;
 use nalgebra::{Matrix3};
-use crate::{pack::*, class::*, map::*};
+use clay_core::{pack::*, class::*, map::*};
 
 
 pub struct Linear(pub Matrix3<f64>);
@@ -15,7 +15,7 @@ impl Map for Linear {}
 
 impl Instance<MapClass> for Linear {
     fn source(_: &mut HashSet<u64>) -> String {
-        "#include <clay_core/map/linear.h>".to_string()
+        "#include <clay/map/linear.h>".to_string()
     }
     fn inst_name() -> String {
         "linear".to_string()

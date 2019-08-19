@@ -1,5 +1,5 @@
 use std::collections::HashSet;
-use crate::{pack::*, class::*, material::*};
+use clay_core::{pack::*, class::*, material::*};
 
 
 #[derive(Clone, Debug, Default)]
@@ -13,7 +13,7 @@ impl Material for Reflective {
 
 impl Instance<MaterialClass> for Reflective {
     fn source(_: &mut HashSet<u64>) -> String {
-    	"#include <clay_core/material/reflective.h>".to_string()
+    	"#include <clay/material/reflective.h>".to_string()
     }
     fn inst_name() -> String {
         "reflective".to_string()

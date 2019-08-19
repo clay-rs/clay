@@ -1,5 +1,5 @@
 mod program;
-mod worker;
-
 pub use program::Program;
+
+mod worker;
 pub use worker::Worker;

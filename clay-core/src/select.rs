@@ -117,17 +117,20 @@ macro_rules! instance_select {
     };
 }
 
-#[allow(dead_code)]
-mod _check {
+#[cfg(test)]
+mod check {
     use crate::{
-        shape::*,
+        shape::{
+            Shape, ShapeClass,
+            test::TestShape,
+        },
         instance_select,
     };
 
     instance_select!(
         TestSelect: Shape: ShapeClass {
-            Sphere(TS = UnitSphere),
-            Cube(TC = UnitCube),
+            Shape1(T1 = TestShape<i32>),
+            Shape2(T2 = TestShape<f32>),
         }
     );
 }

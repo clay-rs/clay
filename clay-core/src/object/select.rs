@@ -2,11 +2,11 @@
 macro_rules! object_select {
     ( $Select:ident { $( $Enum:ident ( $Param:ident = $Object:ty ) ),+ $(,)? } ) => {
         $crate::instance_select!(
-            $Select: $crate::object::Object: $crate::object::ObjectClass {
+            $Select: $crate::Object: $crate::ObjectClass {
                 $( $Enum($Param = $Object) ),+
             }
         );
-        impl Object for $Select {}
+        impl $crate::Object for $Select {}
 
         impl<
             B_: $crate::Bound,
@@ -15,7 +15,7 @@ macro_rules! object_select {
                     $crate::Object +
                     $crate::Bounded<B_>
             ),+
-        > Bounded<B_> for $Select<
+        > $crate::Bounded<B_> for $Select<
             $( $Param ),+
         > {
             fn bound(&self) -> Option<B_> {
@@ -32,7 +32,7 @@ macro_rules! object_select {
                     $crate::Object +
                     $crate::Targeted<T_>
             ),+
-        > Targeted<T_> for $Select<
+        > $crate::Targeted<T_> for $Select<
             $( $Param ),+
         > {
             fn target(&self) -> Option<(T_, f64)> {
@@ -44,19 +44,19 @@ macro_rules! object_select {
     };
 }
 
-#[allow(dead_code)]
-mod _check {
+#[cfg(test)]
+mod check {
     use crate::{
-        shape::*,
-        material::*,
-        object::*,
+        shape::test::TestShape,
+        material::test::TestMaterial,
+        object::Covered,
         object_select,
     };
 
     object_select!(
         TestSelect {
-            Sphere(TS = Covered<UnitSphere, Reflective>),
-            Cube(TC = Covered<UnitCube, Reflective>),
+            Object1(T1 = Covered<TestShape<i32>, TestMaterial<i32>>),
+            Object2(T2 = Covered<TestShape<f32>, TestMaterial<f32>>),
         }
     );
 }

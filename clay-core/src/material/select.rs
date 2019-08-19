@@ -2,7 +2,7 @@
 macro_rules! material_select {
     ( $Select:ident { $( $Enum:ident ( $Param:ident = $Material:ty ) ),+ $(,)? } ) => {
         $crate::instance_select!(
-            $Select: $crate::Material: $crate::material::MaterialClass {
+            $Select: $crate::Material: $crate::MaterialClass {
                 $( $Enum($Param = $Material) ),+
             }
         );
@@ -16,18 +16,20 @@ macro_rules! material_select {
     };
 }
 
-#[allow(dead_code)]
-mod _check {
+#[cfg(test)]
+mod check {
     use crate::{
-        material::*,
+        material::{
+            Material,
+            test::TestMaterial,
+        },
         material_select,
     };
 
     material_select!(
         TestSelect {
-            Reflective(TR = Reflective),
-            Diffuse(TD = Diffuse),
-            Luminous(TL = Luminous),
+            Material1(T1 = TestMaterial<i32>),
+            Material2(T2 = TestMaterial<f32>),
         }
     );
 }

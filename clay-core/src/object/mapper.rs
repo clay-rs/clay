@@ -2,20 +2,20 @@ use std::collections::HashSet;
 use crate::{pack::*, class::*, TypeHash, Map, object::*};
 
 
-pub struct Mapper<O: Object, M: Map> {
+pub struct ObjectMapper<O: Object, M: Map> {
     pub object: O,
     pub map: M,
 }
 
-impl<O: Object, M: Map> Mapper<O, M> {
+impl<O: Object, M: Map> ObjectMapper<O, M> {
     pub fn new(object: O, map: M) -> Self {
         Self { object, map }
     }
 }
 
-impl<O: Object, M: Map> Object for Mapper<O, M> {}
+impl<O: Object, M: Map> Object for ObjectMapper<O, M> {}
 
-impl<O: Object, M: Map> Instance<ObjectClass> for Mapper<O, M> {
+impl<O: Object, M: Map> Instance<ObjectClass> for ObjectMapper<O, M> {
     fn source(cache: &mut HashSet<u64>) -> String {
         if !cache.insert(Self::type_hash()) {
             return String::new()
@@ -42,7 +42,7 @@ impl<O: Object, M: Map> Instance<ObjectClass> for Mapper<O, M> {
 }
 
 
-impl<O: Object, M: Map> Pack for Mapper<O, M> {
+impl<O: Object, M: Map> Pack for ObjectMapper<O, M> {
     fn size_int() -> usize {
         O::size_int() + M::size_int()
     }

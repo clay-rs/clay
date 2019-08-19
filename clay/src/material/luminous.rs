@@ -1,26 +1,26 @@
 use std::collections::HashSet;
-use crate::{pack::*, class::*, material::*};
+use clay_core::{pack::*, class::*, material::*};
 
 
 #[derive(Clone, Debug, Default)]
-pub struct Diffuse {}
+pub struct Luminous {}
 
-impl Material for Diffuse {
+impl Material for Luminous {
     fn brightness(&self) -> f64 {
-        0.0
+        1.0
     }
 }
 
-impl Instance<MaterialClass> for Diffuse {
+impl Instance<MaterialClass> for Luminous {
     fn source(_: &mut HashSet<u64>) -> String {
-        "#include <clay_core/material/diffuse.h>".to_string()
+        "#include <clay/material/luminous.h>".to_string()
     }
     fn inst_name() -> String {
-        "diffuse".to_string()
+        "luminous".to_string()
     }
 }
 
-impl Pack for Diffuse {
+impl Pack for Luminous {
     fn size_int() -> usize { 0 }
     fn size_float() -> usize { 0 }
     fn pack_to(&self, _buffer_int: &mut [i32], _buffer_float: &mut [f32]) {}

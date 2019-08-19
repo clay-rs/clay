@@ -7,9 +7,12 @@ use ocl::{Platform, Device};
 use nalgebra::{Vector3, Matrix3};
 use clay_core::{
     Context, Worker,
-    scene::ListScene, view::ProjView,
     shape::*, material::*, object::Covered,
     shape_select, material_select, material_combine,
+};
+use clay::{
+    scene::ListScene, view::ProjView,
+    shape::*, material::*,
 };
 use clay_gui::{Window};
 
@@ -44,18 +47,21 @@ fn main() {
     let device = Device::first(platform).unwrap();
 
     let context = Context::new(platform, device).unwrap();
-    let worker_builder = Worker::<MyScene, MyView>::builder().unwrap();
-    
+    let mut builder = Worker::<MyScene, MyView>::builder();
+    builder.add_hook(clay_core::source());
+    builder.add_hook(clay::source());
+    let builder = builder.collect().unwrap();
+
     create_dir_all("./__gen_programs").unwrap();
     for (name, prog) in [
-        ("render", &worker_builder.programs().render),
-        ("draw", &worker_builder.programs().draw),
+        ("render", &builder.programs().render),
+        ("draw", &builder.programs().draw),
     ].iter() {
         File::create(&format!("__gen_programs/{}.c", name)).unwrap()
         .write_all(prog.source().as_bytes()).unwrap();
     }
 
-    let mut worker = worker_builder.build(&context).unwrap();
+    let mut worker = builder.build(&context).unwrap();
     for (name, msg) in [
         ("render", &worker.programs().render.1),
         ("draw", &worker.programs().draw.1),
@@ -67,7 +73,7 @@ fn main() {
 
     let mut builder = ListScene::builder();
     builder.add_targeted(
-        MyShape::from(Parallelepiped::build(
+        MyShape::from(Parallelepiped::new(
             0.25*Matrix3::identity(),
             Vector3::new(-2.0, 0.0, 5.0),
         ))
@@ -76,7 +82,7 @@ fn main() {
         ))
     );
     builder.add_targeted(
-        MyShape::from(Ellipsoid::build(
+        MyShape::from(Ellipsoid::new(
             0.2*Matrix3::identity(),
             Vector3::new(0.0, -2.0, 2.5),
         ))
@@ -85,7 +91,7 @@ fn main() {
         ))
     );
     builder.add(
-        MyShape::from(Parallelepiped::build(
+        MyShape::from(Parallelepiped::new(
             Matrix3::from_diagonal(&Vector3::new(5.0, 5.0, 0.1)),
             Vector3::new(0.0, 0.0, -0.1),
         ))
@@ -94,7 +100,7 @@ fn main() {
         ))
     );
     builder.add(
-        MyShape::from(Parallelepiped::build(
+        MyShape::from(Parallelepiped::new(
             0.25*Matrix3::identity(),
             Vector3::new(1.0, 0.0, 0.25),
         ))
@@ -104,7 +110,7 @@ fn main() {
         )))
     );
     builder.add(
-        MyShape::from(Ellipsoid::build(
+        MyShape::from(Ellipsoid::new(
             0.25*Matrix3::identity(),
             Vector3::new(0.0, 1.0, 0.25),
         ))
@@ -114,7 +120,7 @@ fn main() {
         )))
     );
     builder.add(
-        MyShape::from(Ellipsoid::build(
+        MyShape::from(Ellipsoid::new(
             0.5*Matrix3::identity(),
             Vector3::new(0.0, 0.0, 0.5),
         ))

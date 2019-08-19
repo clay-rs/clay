@@ -1,5 +1,5 @@
 use std::collections::HashSet;
-use crate::{pack::*, class::*, map::*};
+use clay_core::{pack::*, class::*, map::*};
 
 
 pub struct Scale(pub f64);
@@ -14,10 +14,10 @@ impl Map for Scale {}
 
 impl Instance<MapClass> for Scale {
     fn source(_: &mut HashSet<u64>) -> String {
-        "#include <clay_core/map/affine.h>".to_string()
+        "#include <clay/map/scale.h>".to_string()
     }
     fn inst_name() -> String {
-        "affine".to_string()
+        "scale".to_string()
     }
 }
 

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "material.h"
+#include <clay_core/material/material.h>
 
 
 MATERIAL_BOUNCE_RET reflective_bounce(

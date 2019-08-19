@@ -3,7 +3,7 @@ use ocl::{
     self,
     builders::KernelBuilder,
 };
-use crate::{
+use clay_core::{
     Context,
     pack::*,
     class::*,
@@ -11,7 +11,7 @@ use crate::{
     object::*,
     buffer::InstanceBuffer,
 };
-use crate::{Push, Scene};
+use clay_core::{Push, Scene};
 
 
 struct TargetData<T> {
@@ -103,7 +103,7 @@ impl<O: Object + Targeted<T>, T: Target> Scene for ListScene<O, T> {
                     method, T::inst_name(), method,
                 )
             }).collect::<Vec<_>>().join("\n"),
-            "#include <clay_core/scene/list_scene.h>".to_string(),
+            "#include <clay/scene/list_scene.h>".to_string(),
         ]
         .join("\n")
     }

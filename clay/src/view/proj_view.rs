@@ -1,7 +1,7 @@
 use std::collections::HashSet;
 use ocl::{self, prm, builders::KernelBuilder};
 use nalgebra::{Vector3, Matrix3};
-use crate::{Push, View};
+use clay_core::{Push, View};
 
 pub struct ProjView {
     pub pos: Vector3<f64>,
@@ -10,7 +10,7 @@ pub struct ProjView {
 
 impl View for ProjView {
 	fn source(_: &mut HashSet<u64>) -> String {
-		"#include <clay_core/view/proj_view.h>\n".to_string()
+		"#include <clay/view/proj_view.h>\n".to_string()
 	}
 }
 

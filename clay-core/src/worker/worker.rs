@@ -4,13 +4,8 @@ use std::{
     marker::PhantomData,
 };
 use ocl::{self, prm};
-use ocl_include::{MemHook, ListHook};
-use crate::{
-    Context,
-    Scene, View,
-    Screen,
-    get_ocl_src,
-};
+use ocl_include::{Hook, MemHook, ListHook};
+use crate::{Context, Scene, View, Screen};
 use super::{Program};
 
 pub struct Programs<P> {
@@ -21,6 +16,11 @@ pub struct Programs<P> {
 pub struct Kernels {
     render: ocl::Kernel,
     draw: ocl::Kernel,
+}
+
+pub struct WorkerCollector<S: Scene, V: View> {
+    hooks: ListHook,
+    phantom: PhantomData<(S, V)>,
 }
 
 pub struct WorkerBuilder<S: Scene, V: View> {
@@ -43,22 +43,29 @@ impl<S: Scene, V: View> WorkerBuilder<S, V> {
 }
 
 impl<S: Scene, V: View> Worker<S, V> {
-    pub fn builder() -> crate::Result<WorkerBuilder<S, V>> {
-        let mut inst_cache = HashSet::<u64>::new();
-        let render_prog = Program::new(
-            &ListHook::builder()
-            .add_hook(get_ocl_src())
-            .add_hook(
-                MemHook::builder()
-                .add_file(&Path::new("__gen/scene.h"), S::source(&mut inst_cache))?
-                .add_file(&Path::new("__gen/view.h"), V::source(&mut inst_cache))?
-                .build()
-            )
-            .build(),
-            &Path::new("clay_core/render.c"),
-        )?;
+    pub fn builder() -> WorkerCollector<S, V> {
+        WorkerCollector {
+            hooks: ListHook::new(),
+            phantom: PhantomData,
+        }
+    }
+}
 
-        let draw_prog = Program::new(&get_ocl_src(), &Path::new("clay_core/draw.c"))?;
+impl<S: Scene, V: View> WorkerCollector<S, V> {
+    pub fn add_hook<H: Hook + 'static>(&mut self, hook: H) {
+        self.hooks.add_hook(hook);
+    }
+
+    pub fn collect(mut self) -> crate::Result<WorkerBuilder<S, V>> {
+        let mut inst_cache = HashSet::<u64>::new();
+        self.hooks.add_hook(
+            MemHook::builder()
+            .add_file(&Path::new("__gen/scene.h"), S::source(&mut inst_cache))?
+            .add_file(&Path::new("__gen/view.h"), V::source(&mut inst_cache))?
+            .build()
+        );
+        let render_prog = Program::new(&self.hooks, &Path::new("clay_core/render.c"))?;
+        let draw_prog = Program::new(&self.hooks, &Path::new("clay_core/draw.c"))?;
 
         Ok(WorkerBuilder {
             programs: Programs { render: render_prog, draw: draw_prog },

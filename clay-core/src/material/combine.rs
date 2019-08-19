@@ -73,7 +73,7 @@ macro_rules! material_combine {
             }
         }
 
-        impl $crate::Instance<$crate::material::MaterialClass> for $Combine {
+        impl $crate::Instance<$crate::MaterialClass> for $Combine {
             fn source(cache: &mut std::collections::HashSet<u64>) -> String {
                 use $crate::{TypeHash, class::*, material::*};
                 if !cache.insert(Self::type_hash()) {
@@ -120,15 +120,16 @@ macro_rules! material_combine {
     };
 }
 
+#[cfg(test)]
 #[allow(dead_code)]
-mod _check {
+mod check {
     use crate::{
-        material::*,
+        material::test::TestMaterial,
         material_combine,
     };
 
     material_combine!(TestCombine {
-        reflect: Reflective,
-        diffuse: Diffuse,
+        m1: TestMaterial<i32>,
+        m2: TestMaterial<f32>,
     });
 }

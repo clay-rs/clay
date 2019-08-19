@@ -1,6 +1,6 @@
 #pragma once
 
-#include "shape.h"
+#include <clay_core/shape/shape.h>
 
 
 float _cube_hit_nearest(float3 near, float3 *norm) {

@@ -1,8 +1,9 @@
 mod object;
 pub use object::*;
 mod mapper;
-pub use mapper::{Mapper as ObjectMapper};
+pub use mapper::*;
 
 mod covered;
 pub use covered::*;
+
 mod select;

@@ -1,6 +1,6 @@
 use std::collections::HashSet;
 use nalgebra::{Vector3};
-use crate::{Pack, class::*, map::*};
+use clay_core::{Pack, class::*, map::*};
 
 
 pub struct Shift(pub Vector3<f64>);
@@ -15,7 +15,7 @@ impl Map for Shift {}
 
 impl Instance<MapClass> for Shift {
     fn source(_: &mut HashSet<u64>) -> String {
-        "#include <clay_core/map/shift.h>".to_string()
+        "#include <clay/map/shift.h>".to_string()
     }
     fn inst_name() -> String {
         "shift".to_string()

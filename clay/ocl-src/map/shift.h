@@ -1,6 +1,6 @@
 #pragma once
 
-#include "map.h"
+#include <clay_core/map/map.h>
 
 typedef float3 Shift;
 

@@ -6,10 +6,9 @@ mod target;
 pub use target::*;
 
 mod mapper;
-pub use mapper::{Mapper as ShapeMapper};
+pub use mapper::*;
+
 mod select;
 
-mod sphere;
-pub use sphere::*;
-mod cube;
-pub use cube::*;
+#[cfg(test)]
+pub mod test;
