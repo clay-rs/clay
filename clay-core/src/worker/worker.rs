@@ -45,7 +45,10 @@ impl<S: Scene, V: View> WorkerBuilder<S, V> {
 impl<S: Scene, V: View> Worker<S, V> {
     pub fn builder() -> WorkerCollector<S, V> {
         WorkerCollector {
-            hooks: ListHook::new(),
+            hooks:
+                ListHook::builder()
+                .add_hook(crate::source())
+                .build(),
             phantom: PhantomData,
         }
     }

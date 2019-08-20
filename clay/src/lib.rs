@@ -9,6 +9,10 @@ pub mod material;
 
 pub mod scene;
 pub mod view;
+pub mod background;
+
+pub mod worker;
+pub use worker::*;
 
 pub mod source;
 pub use source::*;

@@ -11,8 +11,9 @@ use clay_core::{
     shape_select, material_select, material_combine,
 };
 use clay::{
-    scene::ListScene, view::ProjView,
+    scene::TargetListScene, view::ProjView,
     shape::*, material::*,
+    background::{GradientBackground as GradBg},
 };
 use clay_gui::{Window};
 
@@ -30,7 +31,7 @@ material_select!(MyMaterial {
     Luminous(TC=Colored<Luminous>),
 });
 type MyObject = Covered<MyShape, MyMaterial>;
-type MyScene = ListScene<MyObject, Sphere>;
+type MyScene = TargetListScene<MyObject, Sphere, GradBg>;
 type MyView = ProjView;
 
 
@@ -71,7 +72,9 @@ fn main() {
         }
     }
 
-    let mut builder = ListScene::builder();
+    let mut builder = TargetListScene::builder(GradBg::new(
+        Vector3::new(0.2, 0.2, 0.4), Vector3::zeros(),
+    ));
     builder.add_targeted(
         MyShape::from(Parallelepiped::new(
             0.25*Matrix3::identity(),

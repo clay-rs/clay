@@ -26,6 +26,8 @@ pub mod scene;
 pub use scene::*;
 pub mod view;
 pub use view::*;
+pub mod background;
+pub use background::*;
 
 pub mod source;
 pub use source::*;
