@@ -10,48 +10,27 @@ use clay_core::{
     object::*,
     Background,
 };
-use clay_core::{Push, Scene};
+use clay_core::{Push, Store, Scene};
 
 
 #[allow(dead_code)]
-pub struct ListSceneBuilder<O: Object, B: Background> {
+pub struct ListScene<O: Object, B: Background> {
     objects: Vec<O>,
     background: B,
 }
 
-impl<O: Object, B: Background> ListSceneBuilder<O, B> {
-    pub fn add(&mut self, object: O) -> &mut Self {
-        self.objects.push(object);
-        self
-    }
-    pub fn build(self, context: &Context) -> crate::Result<ListScene<O, B>> {
-        ListScene::new(context, self.objects, self.background)
-    }
-}
-
-pub struct ListScene<O: Object, B: Background> {
-    buffer: InstanceBuffer<O>,
-    background: B,
-}
-
 impl<O: Object, B: Background> ListScene<O, B> {
-    pub fn new(
-        context: &Context,
-        objects: Vec<O>,
-        background: B,
-    ) -> crate::Result<Self> {
-        let buffer = InstanceBuffer::new(context, &objects)?;
-        Ok(Self { buffer, background })
+    pub fn new(background: B) -> Self {
+        Self { objects: Vec::new(), background }
     }
 
-    pub fn builder(background: B) -> ListSceneBuilder<O, B> {
-        ListSceneBuilder { objects: Vec::new(), background } 
+    pub fn add(&mut self, object: O) {
+        self.objects.push(object);
     }
 }
 
 impl<O: Object, B: Background> Scene for ListScene<O, B> {
     fn source(cache: &mut HashSet<u64>) -> String {
-        // TODO: iterate over class methods
         [
             O::source(cache),
             B::source(cache),
@@ -67,12 +46,31 @@ impl<O: Object, B: Background> Scene for ListScene<O, B> {
     }
 }
 
-impl<O: Object, B: Background> Push for ListScene<O, B> {
+pub struct ListSceneData<O: Object, B: Background> {
+    buffer: InstanceBuffer<O>,
+    background: B::Data,
+}
+
+impl<O: Object, B: Background> Store for ListScene<O, B> {
+    type Data = ListSceneData<O, B>;
+    fn create_data(&self, context: &Context) -> clay_core::Result<Self::Data> {
+        Ok(ListSceneData {
+            buffer: InstanceBuffer::new(context, &self.objects)?,
+            background: self.background.create_data(context)?,
+        })
+    }
+    fn update_data(&self, context: &Context, data: &mut Self::Data) -> clay_core::Result<()> {
+        *data = self.create_data(context)?;
+        Ok(())
+    }
+}
+
+impl<O: Object, B: Background> Push for ListSceneData<O, B> {
     fn args_def(kb: &mut KernelBuilder) {
         InstanceBuffer::<O>::args_def(kb);
-        B::args_def(kb);
+        B::Data::args_def(kb);
     }
-    fn args_set(&self, i: usize, k: &mut ocl::Kernel) -> crate::Result<()> {
+    fn args_set(&mut self, i: usize, k: &mut ocl::Kernel) -> crate::Result<()> {
         let mut j = i;
         self.buffer.args_set(j, k)?;
         j += InstanceBuffer::<O>::args_count();
@@ -80,6 +78,6 @@ impl<O: Object, B: Background> Push for ListScene<O, B> {
     }
     fn args_count() -> usize {
         InstanceBuffer::<O>::args_count() +
-        B::args_count()
+        B::Data::args_count()
     }
 }

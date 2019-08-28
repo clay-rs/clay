@@ -1,8 +1,9 @@
 use std::collections::HashSet;
 use nalgebra::{Vector3};
 use ocl::{self, prm, builders::KernelBuilder};
-use clay_core::{Push, Background};
+use clay_core::{Push, Store, Context, Background};
 
+#[derive(Debug, Clone)]
 pub struct ConstantBackground {
     pub color: Vector3<f64>,
 }
@@ -19,11 +20,22 @@ impl Background for ConstantBackground {
     }
 }
 
+impl Store for ConstantBackground {
+    type Data = Self;
+    fn create_data(&self, _context: &Context) -> clay_core::Result<Self::Data> {
+        Ok(self.clone())
+    }
+    fn update_data(&self, _context: &Context, data: &mut Self::Data) -> clay_core::Result<()> {
+        *data = self.clone();
+        Ok(())
+    }
+}
+
 impl Push for ConstantBackground {
     fn args_def(kb: &mut KernelBuilder) {
         kb.arg(prm::Float3::zero());
     }
-    fn args_set(&self, i: usize, k: &mut ocl::Kernel) -> crate::Result<()> {
+    fn args_set(&mut self, i: usize, k: &mut ocl::Kernel) -> crate::Result<()> {
         let c = self.color.map(|d| d as f32);
         k.set_arg(i, &prm::Float3::new(c[0], c[1], c[2]))?;
         Ok(())

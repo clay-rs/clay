@@ -11,8 +11,8 @@ pub mod scene;
 pub mod view;
 pub mod background;
 
-pub mod worker;
-pub use worker::*;
+pub mod process;
+pub use process::*;
 
 pub mod source;
 pub use source::*;
