@@ -17,6 +17,7 @@ use clay_viewer::{Window};
 // spherical shape and colored diffuse material
 type MyObject = Covered<Sphere, Colored<Diffuse>>;
 
+// Scene contains our objects and has gradient background
 type MyScene = ListScene<MyObject, GradBg>;
 type MyView = ProjView;
 
@@ -37,6 +38,7 @@ fn main() {
 
     let mut scene = ListScene::new(GradBg::new(
         Vector3::new(0.8, 0.8, 0.8), Vector3::new(0.2, 0.2, 0.2),
+        Vector3::new(0.0, 0.0, 1.0),
     ));
     scene.add(
         Sphere::new(0.75, Vector3::new(-0.75, 0.0, 0.0))
@@ -53,13 +55,13 @@ fn main() {
     };
 
     let mut renderer = DefaultRenderer::<MyScene, MyView>::new(dims, scene, view).unwrap();
-
     let (mut worker, message) = renderer.create_worker(&context).unwrap();
     if message.len() > 0 {
         println!("render build log:\n{}", message);
     }
 
-    let (mut postproc, message) = DefaultPostproc::new(&context, dims).unwrap();
+    let (mut postproc, message) = DefaultPostproc::builder().unwrap()
+    .build(&context, dims).unwrap();
     if message.len() > 0 {
         println!("filter build log:\n{}", message);
     }

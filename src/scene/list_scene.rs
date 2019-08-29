@@ -3,6 +3,7 @@ use ocl::{
     self,
     builders::KernelBuilder,
 };
+use uuid::Uuid;
 use clay_core::{
     Context,
     InstanceBuffer,
@@ -17,15 +18,17 @@ use clay_core::{Push, Store, Scene};
 pub struct ListScene<O: Object, B: Background> {
     objects: Vec<O>,
     background: B,
+    uuid: Uuid,
 }
 
 impl<O: Object, B: Background> ListScene<O, B> {
     pub fn new(background: B) -> Self {
-        Self { objects: Vec::new(), background }
+        Self { objects: Vec::new(), background, uuid: Uuid::new_v4() }
     }
 
     pub fn add(&mut self, object: O) {
         self.objects.push(object);
+        self.uuid = Uuid::new_v4();
     }
 }
 
@@ -49,18 +52,22 @@ impl<O: Object, B: Background> Scene for ListScene<O, B> {
 pub struct ListSceneData<O: Object, B: Background> {
     buffer: InstanceBuffer<O>,
     background: B::Data,
+    uuid: Uuid,
 }
 
 impl<O: Object, B: Background> Store for ListScene<O, B> {
     type Data = ListSceneData<O, B>;
     fn create_data(&self, context: &Context) -> clay_core::Result<Self::Data> {
         Ok(ListSceneData {
-            buffer: InstanceBuffer::new(context, &self.objects)?,
+            buffer: InstanceBuffer::new(context, self.objects.iter())?,
             background: self.background.create_data(context)?,
+            uuid: self.uuid,
         })
     }
     fn update_data(&self, context: &Context, data: &mut Self::Data) -> clay_core::Result<()> {
-        *data = self.create_data(context)?;
+        if self.uuid != data.uuid {
+            *data = self.create_data(context)?;
+        }
         Ok(())
     }
 }

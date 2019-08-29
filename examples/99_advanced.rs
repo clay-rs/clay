@@ -6,7 +6,7 @@ use std::{
 use ocl::{Platform, Device};
 use nalgebra::{Vector3, Matrix3};
 use clay_core::{
-    Context, Worker,
+    Context, Store,
     shape::*, material::*, object::Covered,
     shape_select, material_select, material_combine,
 };
@@ -14,8 +14,9 @@ use clay::{
     scene::TargetListScene, view::ProjView,
     shape::*, material::*,
     background::{GradientBackground as GradBg},
+    process::{DefaultRenderer, DefaultPostproc},
 };
-use clay_gui::{Window};
+use clay_viewer::{Window};
 
 shape_select!(MyShape {
     Cube(TC=Parallelepiped),
@@ -36,6 +37,7 @@ type MyView = ProjView;
 
 
 fn main() {
+    // Parse args to select OpenCL platform
     let args = env::args().collect::<Vec<_>>();
     let platform = if args.len() > 1 {
         let platform_list = Platform::list();
@@ -46,36 +48,14 @@ fn main() {
         Platform::default()
     };
     let device = Device::first(platform).unwrap();
-
     let context = Context::new(platform, device).unwrap();
-    let mut builder = Worker::<MyScene, MyView>::builder();
-    builder.add_hook(clay_core::source());
-    builder.add_hook(clay::source());
-    let builder = builder.collect().unwrap();
+    let dims = (1000, 800);
 
-    create_dir_all("./__gen_programs").unwrap();
-    for (name, prog) in [
-        ("render", &builder.programs().render),
-        ("draw", &builder.programs().draw),
-    ].iter() {
-        File::create(&format!("__gen_programs/{}.c", name)).unwrap()
-        .write_all(prog.source().as_bytes()).unwrap();
-    }
-
-    let mut worker = builder.build(&context).unwrap();
-    for (name, msg) in [
-        ("render", &worker.programs().render.1),
-        ("draw", &worker.programs().draw.1),
-    ].iter() {
-        if msg.len() > 0 {
-            println!("'{}' build log:\n{}", name, msg);
-        }
-    }
-
-    let mut builder = TargetListScene::builder(GradBg::new(
+    let mut scene = TargetListScene::new(GradBg::new(
         Vector3::new(0.2, 0.2, 0.4), Vector3::zeros(),
+        Vector3::new(0.0, 0.0, 1.0),
     ));
-    builder.add_targeted(
+    scene.add_targeted(
         MyShape::from(Parallelepiped::new(
             0.25*Matrix3::identity(),
             Vector3::new(-2.0, 0.0, 5.0),
@@ -84,7 +64,7 @@ fn main() {
             Luminous {}.color_with(100.0*Vector3::new(1.0, 1.0, 0.5)),
         ))
     );
-    builder.add_targeted(
+    scene.add_targeted(
         MyShape::from(Ellipsoid::new(
             0.2*Matrix3::identity(),
             Vector3::new(0.0, -2.0, 2.5),
@@ -93,7 +73,7 @@ fn main() {
             Luminous {}.color_with(100.0*Vector3::new(0.2, 0.2, 1.0)),
         ))
     );
-    builder.add(
+    scene.add(
         MyShape::from(Parallelepiped::new(
             Matrix3::from_diagonal(&Vector3::new(5.0, 5.0, 0.1)),
             Vector3::new(0.0, 0.0, -0.1),
@@ -102,7 +82,7 @@ fn main() {
             Diffuse {}.color_with(Vector3::new(0.9, 0.9, 0.9)),
         ))
     );
-    builder.add(
+    scene.add(
         MyShape::from(Parallelepiped::new(
             0.25*Matrix3::identity(),
             Vector3::new(1.0, 0.0, 0.25),
@@ -112,35 +92,75 @@ fn main() {
             (0.8, Diffuse {}.color_with(Vector3::new(0.5, 0.5, 0.9))),
         )))
     );
-    builder.add(
+    scene.add(
         MyShape::from(Ellipsoid::new(
             0.25*Matrix3::identity(),
-            Vector3::new(0.0, 1.0, 0.25),
+            Vector3::new(0.0, 0.0, 0.25),
         ))
         .cover(MyMaterial::from(Glossy::new(
             (0.1, Reflective {}),
             (0.9, Diffuse {}.color_with(Vector3::new(0.9, 0.5, 0.5))),
         )))
     );
-    builder.add(
+    scene.add(
         MyShape::from(Ellipsoid::new(
             0.5*Matrix3::identity(),
-            Vector3::new(0.0, 0.0, 0.5),
+            Vector3::new(0.5, 1.0, 0.5),
         ))
         .cover(MyMaterial::from(
             Diffuse {}.color_with(Vector3::new(0.5, 0.9, 0.5)),
         ))
     );
-    let scene = builder.build(&context).unwrap();
 
+    let origin = Vector3::new(0.0, -2.0, 1.0);
+    let view = ProjView {
+        pos: origin,
+        ori: Matrix3::identity(),
+    };
 
-    let mut window = Window::new((1000, 800)).unwrap();
+    let mut renderer = DefaultRenderer::<MyScene, MyView>::new(dims, scene, view).unwrap();
+    let postproc_builder = DefaultPostproc::builder().unwrap();
 
-    window.start(&context, |screen, pos, map| {
-        let view = ProjView {
-            pos: pos + Vector3::new(0.0, -2.0, 1.0),
-            ori: map.matrix().clone(),
-        };
-        worker.render(screen, &scene, &view)
-    }).unwrap();
+    create_dir_all("./__gen_programs").unwrap();
+    for (name, prog) in [
+        ("render.c", &renderer.program()),
+        ("filter.c", &postproc_builder.program()),
+    ].iter() {
+        File::create(&format!("__gen_programs/{}", name)).unwrap()
+        .write_all(prog.source().as_bytes()).unwrap();
+    }
+
+    let (mut worker, message) = renderer.create_worker(&context).unwrap();
+    if message.len() > 0 {
+        println!("render build log:\n{}", message);
+    }
+
+    let (mut postproc, message) = postproc_builder.build(&context, dims).unwrap();
+    if message.len() > 0 {
+        println!("filter build log:\n{}", message);
+    }
+
+    let mut window = Window::new(dims).unwrap();
+
+    'main: loop {
+        let quit = window.poll().unwrap();
+        if quit {
+            break 'main;
+        }
+
+        let (pos, ori) = window.view_params();
+        renderer.view.pos = pos + origin;
+        renderer.view.ori = ori.matrix().clone();
+        renderer.update_data(&context, worker.data_mut()).unwrap();
+
+        if window.was_updated() {
+            worker.data_mut().buffer_mut().clear().unwrap();
+        }
+        worker.run().unwrap();
+
+        postproc.process_one(&worker.data().buffer()).unwrap();
+        postproc.make_image().unwrap();
+
+        window.draw(postproc.image()).unwrap();
+    }
 }

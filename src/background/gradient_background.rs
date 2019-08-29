@@ -5,13 +5,14 @@ use clay_core::{Push, Store, Context, Background};
 
 #[derive(Debug, Clone)]
 pub struct GradientBackground {
-    pub top: Vector3<f64>,
-    pub bottom: Vector3<f64>,
+    pub front: Vector3<f64>,
+    pub back: Vector3<f64>,
+    pub dir: Vector3<f64>,
 }
 
 impl GradientBackground {
-    pub fn new(top: Vector3<f64>, bottom: Vector3<f64>) -> Self {
-        Self { top, bottom }
+    pub fn new(front: Vector3<f64>, back: Vector3<f64>, dir: Vector3<f64>) -> Self {
+        Self { front, back, dir }
     }
 }
 
@@ -35,16 +36,19 @@ impl Store for GradientBackground {
 impl Push for GradientBackground {
     fn args_def(kb: &mut KernelBuilder) {
         kb
-        .arg(prm::Float3::zero()) // top color
-        .arg(prm::Float3::zero()); // bottom color
+        .arg(prm::Float3::zero()) // front color
+        .arg(prm::Float3::zero()) // back color
+        .arg(prm::Float3::zero()); // gradient direction
     }
     fn args_set(&mut self, i: usize, k: &mut ocl::Kernel) -> crate::Result<()> {
-        let (tc, bc) = (self.top.map(|d| d as f32), self.bottom.map(|d| d as f32));
-        k.set_arg(i + 0, &prm::Float3::new(tc[0], tc[1], tc[2]))?;
+        let (fc, bc) = (self.front.map(|d| d as f32), self.back.map(|d| d as f32));
+        let d = self.dir.map(|d| d as f32);
+        k.set_arg(i + 0, &prm::Float3::new(fc[0], fc[1], fc[2]))?;
         k.set_arg(i + 1, &prm::Float3::new(bc[0], bc[1], bc[2]))?;
+        k.set_arg(i + 2, &prm::Float3::new(d[0], d[1], d[2]))?;
         Ok(())
     }
     fn args_count() -> usize {
-        2
+        3
     }
 }

@@ -16,19 +16,20 @@ readme = "README.md"
 build = "build.rs"
 
 [dependencies]
-clay-core = { git = "https://github.com/clay-rs/clay-core.git", rev = "28867d2d708042b3f88986c351ebe34a2f3cf0ee" }
-#clay-core = { path = "../clay-core" }
-
 ocl = "0.19"
 ocl-include = "0.3.3"
 nalgebra = "0.18"
 rand = "0.7"
 lazy_static = "1.3.0"
 regex = "1"
+uuid = { version = "0.7", features = ["v4"] }
+
+clay-core = { git = "https://github.com/clay-rs/clay-core.git", rev = "2e08f9cc78f8f0657faa7c94b8fd038cde35ebeb" }
+#clay-core = { path = "../clay-core" }
 
 [build-dependencies]
 walkdir = "2"
 
 [dev-dependencies]
-clay-viewer = { git = "https://github.com/clay-rs/clay-viewer.git", rev = "9b1b47e1f6c04318662131df44bc9434dda7c10f" }
+clay-viewer = { git = "https://github.com/clay-rs/clay-viewer.git", rev = "0a41f502486641f107f729005dc3b68975e979a7" }
 #clay-viewer = { path = "../clay-viewer" }

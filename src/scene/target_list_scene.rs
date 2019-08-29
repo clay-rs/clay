@@ -1,8 +1,13 @@
-use std::collections::HashSet;
+use std::{
+    rc::Rc,
+    cell::Cell,
+    collections::HashSet,
+};
 use ocl::{
     self,
     builders::KernelBuilder,
 };
+use uuid::Uuid;
 use clay_core::{
     Context,
     pack::*,
@@ -12,12 +17,13 @@ use clay_core::{
     buffer::InstanceBuffer,
     Background,
 };
-use clay_core::{Push, Scene};
+use clay_core::{Push, Store, Scene};
+
 
 struct TargetData<T: Target> {
     object_index: usize,
     brightness: f64,
-    target: T,
+    target: Rc<T>,
 }
 
 impl<T: Target> Pack for TargetData<T> {
@@ -39,7 +45,7 @@ impl<T: Target> Pack for TargetData<T> {
 
 struct ObjectData<O: Object> {
     target_index: Option<usize>,
-    object: O,
+    object: Rc<O>,
 }
 
 impl<O: Object> Pack for ObjectData<O> {
@@ -66,73 +72,36 @@ type Element<O, T> = (O, Option<(T, f64)>);
 
 
 #[allow(dead_code)]
-pub struct TargetListSceneBuilder<O: Object + Targeted<T>, T: Target, B: Background> {
-    elements: Vec<Element<O, T>>,
-    background: B,
-}
-
-impl<O: Object + Targeted<T>, T: Target, B: Background> TargetListSceneBuilder<O, T, B> {
-    pub fn add(&mut self, object: O) -> &mut Self {
-        self.elements.push((object, None));
-        self
-    }
-    pub fn add_targeted(&mut self, object: O) -> &mut Self {
-        let target_opt = object.target();
-        self.elements.push((object, target_opt));
-        self
-    }
-    pub fn build(self, context: &Context) -> crate::Result<TargetListScene<O, T, B>> {
-        TargetListScene::new(context, self.elements, self.background)
-    }
-}
-
 pub struct TargetListScene<O: Object + Targeted<T>, T: Target, B: Background> {
-    object_buffer: InstanceBuffer<ObjectData<O>>,
-    target_buffer: InstanceBuffer<TargetData<T>>,
+    elements: Cell<Vec<Element<O, T>>>,
     background: B,
+    uuid: Uuid,
 }
 
 impl<O: Object + Targeted<T>, T: Target, B: Background> TargetListScene<O, T, B> {
-    pub fn new(
-        context: &Context,
-        elements: Vec<Element<O, T>>,
-        background: B,
-    ) -> crate::Result<Self> {
-        let mut objects = Vec::new();
-        let mut targets = Vec::new();
-        for (i, (object, target_opt)) in elements.into_iter().enumerate() {
-            match target_opt {
-                Some((target, brightness)) => {
-                    objects.push(ObjectData {
-                        target_index: Some(targets.len()),
-                        object,
-                    });
-                    targets.push(TargetData {
-                        object_index: i,
-                        brightness, target,
-                    });
-                },
-                None => {
-                    objects.push(ObjectData {
-                        target_index: None,
-                        object,
-                    });
-                }
-            }
-        }
-        let object_buffer = InstanceBuffer::new(context, &objects)?;
-        let target_buffer = InstanceBuffer::new(context, &targets)?;
-        Ok(Self { object_buffer, target_buffer, background })
+    pub fn new(background: B) -> Self {
+        Self { elements: Cell::new(Vec::new()), background, uuid: Uuid::new_v4() } 
     }
+    pub fn add(&mut self, object: O) {
+        self.elements.get_mut().push((object, None));
+        self.uuid = Uuid::new_v4();
+    }
+    pub fn add_targeted(&mut self, object: O) {
+        let target_opt = object.target();
+        self.elements.get_mut().push((object, target_opt));
+        self.uuid = Uuid::new_v4();
+    }
+}
 
-    pub fn builder(background: B) -> TargetListSceneBuilder<O, T, B> {
-        TargetListSceneBuilder { elements: Vec::new(), background } 
-    }
+pub struct TargetListSceneData<O: Object + Targeted<T>, T: Target, B: Background> {
+    object_buffer: InstanceBuffer<ObjectData<O>>,
+    target_buffer: InstanceBuffer<TargetData<T>>,
+    background: B::Data,
+    uuid: Uuid,
 }
 
 impl<O: Object + Targeted<T>, T: Target, B: Background> Scene for TargetListScene<O, T, B> {
     fn source(cache: &mut HashSet<u64>) -> String {
-        // TODO: iterate over class methods
         [
             O::source(cache),
             T::source(cache),
@@ -155,13 +124,77 @@ impl<O: Object + Targeted<T>, T: Target, B: Background> Scene for TargetListScen
     }
 }
 
-impl<O: Object + Targeted<T>, T: Target, B: Background> Push for TargetListScene<O, T, B> {
+impl<O: Object + Targeted<T>, T: Target, B: Background> Store for TargetListScene<O, T, B> {
+    type Data = TargetListSceneData<O, T, B>;
+    fn create_data(&self, context: &Context) -> clay_core::Result<Self::Data> {
+        let elems = self.elements.replace(Vec::new())
+        .into_iter().map(|(o, to)| {
+            (Rc::new(o), to.map(|t| (Rc::new(t.0), t.1)))
+        }).collect::<Vec<_>>();
+
+        let mut objects = Vec::new();
+        let mut targets = Vec::new();
+        for (i, (object, target_opt)) in elems.iter().enumerate() {
+            match target_opt {
+                Some((target, brightness)) => {
+                    objects.push(ObjectData {
+                        target_index: Some(targets.len()),
+                        object: object.clone(),
+                    });
+                    targets.push(TargetData {
+                        object_index: i,
+                        target: target.clone(),
+                        brightness: *brightness,
+                    });
+                },
+                None => {
+                    objects.push(ObjectData {
+                        target_index: None,
+                        object: object.clone(),
+                    });
+                }
+            }
+        }
+
+        let res = InstanceBuffer::new(context, objects.iter())
+        .and_then(|ob| InstanceBuffer::new(context, targets.iter()).map(|tb| (ob, tb)));
+        let _ = (objects, targets);
+
+        assert_eq!(self.elements.replace(
+            elems.into_iter().map(|(o, to)| {
+                (
+                    Rc::try_unwrap(o).map_err(|_| "Rc still exists somewhere").unwrap(),
+                    to.map(|t| (
+                        Rc::try_unwrap(t.0).map_err(|_| "Rc still exists somewhere").unwrap(),
+                        t.1,
+                    )),
+                )
+            }).collect::<Vec<_>>()
+        ).len(), 0);
+        
+        let (object_buffer, target_buffer) = res?;
+
+        Ok(Self::Data {
+            object_buffer, target_buffer,
+            background: self.background.create_data(context)?,
+            uuid: self.uuid,
+        })
+    }
+    fn update_data(&self, context: &Context, data: &mut Self::Data) -> clay_core::Result<()> {
+        if self.uuid != data.uuid {
+            *data = self.create_data(context)?;
+        }
+        Ok(())
+    }
+}
+
+impl<O: Object + Targeted<T>, T: Target, B: Background> Push for TargetListSceneData<O, T, B> {
     fn args_def(kb: &mut KernelBuilder) {
         InstanceBuffer::<ObjectData<O>>::args_def(kb);
         InstanceBuffer::<TargetData<T>>::args_def(kb);
-        B::args_def(kb);
+        B::Data::args_def(kb);
     }
-    fn args_set(&self, i: usize, k: &mut ocl::Kernel) -> crate::Result<()> {
+    fn args_set(&mut self, i: usize, k: &mut ocl::Kernel) -> crate::Result<()> {
         let mut j = i;
         self.object_buffer.args_set(j, k)?;
         j += InstanceBuffer::<ObjectData<O>>::args_count();
@@ -172,6 +205,6 @@ impl<O: Object + Targeted<T>, T: Target, B: Background> Push for TargetListScene
     fn args_count() -> usize {
         InstanceBuffer::<ObjectData<O>>::args_count() +
         InstanceBuffer::<TargetData<T>>::args_count() +
-        B::args_count()
+        B::Data::args_count()
     }
 }

@@ -1,19 +1,34 @@
+use std::ops::Deref;
 use clay_core::{
     Context,
     filter::{IdentityFilter},
-    process::{Postproc},
+    process::{Postproc, PostprocBuilder},
 };
 
 
 pub struct DefaultPostproc {}
 
+pub struct DefaultPostprocBuilder(
+    PostprocBuilder<IdentityFilter>,
+);
+
+impl Deref for DefaultPostprocBuilder {
+    type Target = PostprocBuilder<IdentityFilter>;
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
 impl DefaultPostproc {
-    pub fn new(
-        context: &Context, dims: (usize, usize),
-    ) -> crate::Result<(Postproc<IdentityFilter>, String)> {
+    pub fn builder() -> crate::Result<DefaultPostprocBuilder> {
         let mut builder = Postproc::<IdentityFilter>::builder();
         builder.add_hook(crate::source());
-        let builder = builder.collect()?;
-        builder.build(context, dims, IdentityFilter::new())
+        builder.collect().map(|b| DefaultPostprocBuilder(b))
+    }
+}
+
+impl DefaultPostprocBuilder {
+    pub fn build(self, context: &Context, dims: (usize, usize)) -> crate::Result<(Postproc<IdentityFilter>, String)> {
+        self.0.build(context, dims, IdentityFilter::new())
     }
 }
