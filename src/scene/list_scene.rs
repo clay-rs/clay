@@ -4,17 +4,16 @@ use ocl::{
     builders::KernelBuilder,
 };
 use uuid::Uuid;
-use clay_core::{
-    Context,
-    InstanceBuffer,
-    class::*,
+use crate::{
+    prelude::*,
     object::*,
-    Background,
+    scene::{Scene, Background},
+    Context,
+    buffer::InstanceBuffer,
 };
-use clay_core::{Push, Store, Scene};
 
 
-#[allow(dead_code)]
+/// Scene with linear complexity of object search.
 pub struct ListScene<O: Object, B: Background> {
     objects: Vec<O>,
     background: B,

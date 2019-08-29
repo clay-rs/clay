@@ -1,7 +1,7 @@
 use std::collections::HashSet;
 use nalgebra::{Vector3};
 use ocl::{self, prm, builders::KernelBuilder};
-use clay_core::{Push, Store, Context, Background};
+use crate::{prelude::*, Context, scene::Background};
 
 #[derive(Debug, Clone)]
 pub struct ConstantBackground {
@@ -16,7 +16,7 @@ impl ConstantBackground {
 
 impl Background for ConstantBackground {
     fn source(_: &mut HashSet<u64>) -> String {
-        "#include <clay/background/constant_background.h>".to_string()
+        "#include <clay/scene/background/constant_background.h>".to_string()
     }
 }
 

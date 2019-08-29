@@ -1,6 +1,6 @@
 use std::collections::HashSet;
 use nalgebra::{Vector3};
-use clay_core::{Pack, class::*, map::*};
+use crate::{prelude::*, map::*};
 
 
 pub struct Shift(pub Vector3<f64>);

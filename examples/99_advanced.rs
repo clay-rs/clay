@@ -5,19 +5,20 @@ use std::{
 };
 use ocl::{Platform, Device};
 use nalgebra::{Vector3, Matrix3};
-use clay_core::{
-    Context, Store,
-    shape::*, material::*, object::Covered,
+use clay::{
+    prelude::*,
+    Context,
+    shape::*,
+    material::*,
+    object::*,
+    scene::{TargetListScene, GradientBackground as GradBg},
+    view::PointView,
+    filter::{IdentityFilter},
+    process::{Renderer, Postproc},
     shape_select, material_select, material_combine,
 };
-use clay::{
-    scene::TargetListScene, view::ProjView,
-    shape::*, material::*,
-    background::{GradientBackground as GradBg},
-    filter::{GlareFilter},
-    process::{DefaultRenderer, Postproc},
-};
 use clay_viewer::{Window};
+
 
 shape_select!(MyShape {
     Cube(TC=Parallelepiped),
@@ -34,7 +35,7 @@ material_select!(MyMaterial {
 });
 type MyObject = Covered<MyShape, MyMaterial>;
 type MyScene = TargetListScene<MyObject, Sphere, GradBg>;
-type MyView = ProjView;
+type MyView = PointView;
 
 
 fn main() {
@@ -114,15 +115,13 @@ fn main() {
     );
 
     let origin = Vector3::new(0.0, -2.0, 1.0);
-    let view = ProjView {
+    let view = PointView {
         pos: origin,
         ori: Matrix3::identity(),
     };
 
-    let filter = GlareFilter::new(0.01);
-
-    let mut renderer = DefaultRenderer::<MyScene, MyView>::new(dims, scene, view).unwrap();
-    let postproc_builder = Postproc::<GlareFilter>::builder().unwrap();
+    let mut renderer = Renderer::<MyScene, MyView>::builder().build(dims, scene, view).unwrap();
+    let postproc_builder = Postproc::<IdentityFilter>::builder().unwrap();
 
     create_dir_all("./__gen_programs").unwrap();
     for (name, prog) in [
@@ -138,7 +137,7 @@ fn main() {
         println!("render build log:\n{}", message);
     }
 
-    let (mut postproc, message) = postproc_builder.build(&context, dims, filter).unwrap();
+    let (mut postproc, message) = postproc_builder.build(&context, dims, IdentityFilter::new()).unwrap();
     if message.len() > 0 {
         println!("filter build log:\n{}", message);
     }

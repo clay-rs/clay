@@ -1,18 +1,22 @@
 use std::marker::PhantomData;
-use clay_core::{
-    Scene, View,
-    process::{Renderer},
+use crate::{
+    scene::Scene, view::View,
+};
+
+pub use crate::core::process::{
+    RendererBuilder, Renderer as CoreRenderer,
+    RenderData, RenderWorker,
 };
 
 
-pub struct DefaultRenderer<S, V> {
+pub struct Renderer<S, V> {
     phantom: PhantomData<(S, V)>
 }
 
-impl<S: Scene, V: View> DefaultRenderer<S, V> {
-    pub fn new(dims: (usize, usize), scene: S, view: V) -> crate::Result<Renderer<S, V>> {
-        let mut builder = Renderer::<S, V>::builder();
+impl<S: Scene, V: View> Renderer<S, V> {
+    pub fn builder() -> RendererBuilder<S, V> {
+        let mut builder = CoreRenderer::<S, V>::builder();
         builder.add_hook(crate::source());
-        builder.build(dims, scene, view)
+        builder
     }
 }

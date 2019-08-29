@@ -1,5 +1,5 @@
 use std::collections::HashSet;
-use clay_core::{pack::*, class::*, material::*};
+use crate::{prelude::*, material::*};
 
 
 #[derive(Clone, Debug, Default)]

@@ -1,6 +1,6 @@
 use std::collections::HashSet;
 use ocl::{self, builders::KernelBuilder};
-use clay_core::{Push, Filter};
+use crate::{Push, filter::Filter};
 
 
 pub struct GlareFilter {

@@ -1,6 +1,6 @@
 use std::collections::HashSet;
 use nalgebra::{Matrix3};
-use clay_core::{pack::*, class::*, map::*};
+use crate::{prelude::*, map::*};
 
 
 pub struct Linear(pub Matrix3<f64>);

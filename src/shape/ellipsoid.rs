@@ -1,15 +1,11 @@
 use std::collections::HashSet;
 use nalgebra::{Vector3, Matrix3, linalg::SVD};
-use clay_core::{
-    pack::*,
-    class::*,
+use crate::{
+    prelude::*,
     map::*,
     shape::*,
 };
-use crate::{
-    map::{Linear, Shift, Affine},
-    shape::{UnitSphere, Sphere},
-};
+
 
 type EllipsoidBase = ShapeMapper<UnitSphere, Affine>;
 pub struct Ellipsoid(EllipsoidBase);

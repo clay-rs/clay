@@ -1,8 +1,11 @@
+pub use crate::core::map::*;
+
+
 mod shift;
-pub use shift::Shift;
+pub use shift::*;
 mod scale;
-pub use scale::Scale;
+pub use scale::*;
 mod linear;
-pub use linear::Linear;
+pub use linear::*;
 mod affine;
-pub use affine::Affine;
+pub use affine::*;

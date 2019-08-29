@@ -1,15 +1,15 @@
 use std::env;
 use ocl::{Platform, Device};
 use nalgebra::{Vector3, Matrix3};
-use clay_core::{
-    Context, Store,
-    shape::*, material::*, object::Covered,
-};
 use clay::{
-    scene::ListScene, view::ProjView,
-    shape::*, material::*,
-    process::{DefaultRenderer, DefaultPostproc},
-    background::{GradientBackground as GradBg},
+    prelude::*,
+    Context,
+    shape::*,
+    material::*,
+    object::*,
+    scene::{ListScene, GradientBackground as GradBg},
+    view::PointView,
+    process::{Renderer, DefaultPostproc},
 };
 use clay_viewer::{Window};
 
@@ -19,7 +19,8 @@ type MyObject = Covered<Sphere, Colored<Diffuse>>;
 
 // Scene contains our objects and has gradient background
 type MyScene = ListScene<MyObject, GradBg>;
-type MyView = ProjView;
+type MyView = PointView;
+
 
 fn main() {
     // Parse args to select OpenCL platform
@@ -49,12 +50,12 @@ fn main() {
         .cover(Diffuse {}.color_with(Vector3::new(0.3, 0.3, 0.9)))
     );
 
-    let view = ProjView {
+    let view = PointView {
         pos: Vector3::new(0.0, -2.0, 0.0),
         ori: Matrix3::identity(),
     };
 
-    let mut renderer = DefaultRenderer::<MyScene, MyView>::new(dims, scene, view).unwrap();
+    let mut renderer = Renderer::<MyScene, MyView>::builder().build(dims, scene, view).unwrap();
     let (mut worker, message) = renderer.create_worker(&context).unwrap();
     if message.len() > 0 {
         println!("render build log:\n{}", message);

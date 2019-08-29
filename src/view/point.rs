@@ -1,21 +1,22 @@
 use std::collections::HashSet;
 use ocl::{self, prm, builders::KernelBuilder};
 use nalgebra::{Vector3, Matrix3};
-use clay_core::{Push, Store, Context, View};
+use crate::{prelude::*, Context, view::View};
+
 
 #[derive(Debug, Clone)]
-pub struct ProjView {
+pub struct PointView {
     pub pos: Vector3<f64>,
     pub ori: Matrix3<f64>,
 }
 
-impl View for ProjView {
+impl View for PointView {
 	fn source(_: &mut HashSet<u64>) -> String {
 		"#include <clay/view/proj_view.h>\n".to_string()
 	}
 }
 
-impl Store for ProjView {
+impl Store for PointView {
     type Data = Self;
     fn create_data(&self, _context: &Context) -> clay_core::Result<Self::Data> {
         Ok(self.clone())
@@ -26,7 +27,7 @@ impl Store for ProjView {
     }
 }
 
-impl Push for ProjView {
+impl Push for PointView {
     fn args_def(kb: &mut KernelBuilder) {
         kb
         .arg(prm::Float3::zero())

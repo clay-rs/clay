@@ -1,3 +1,5 @@
+pub use crate::core::shape::*;
+
 mod unit_sphere;
 pub use unit_sphere::*;
 mod sphere;

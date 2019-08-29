@@ -8,16 +8,14 @@ use ocl::{
     builders::KernelBuilder,
 };
 use uuid::Uuid;
-use clay_core::{
-    Context,
-    pack::*,
-    class::*,
+use crate::{
+    prelude::*,
     shape::*,
     object::*,
+    scene::{Scene, Background},
+    Context,
     buffer::InstanceBuffer,
-    Background,
 };
-use clay_core::{Push, Store, Scene};
 
 
 struct TargetData<T: Target> {
@@ -71,7 +69,7 @@ impl<O: Object> Pack for ObjectData<O> {
 type Element<O, T> = (O, Option<(T, f64)>);
 
 
-#[allow(dead_code)]
+/// Scene with linear complexity and importance sampling of bright objects.
 pub struct TargetListScene<O: Object + Targeted<T>, T: Target, B: Background> {
     elements: Cell<Vec<Element<O, T>>>,
     background: B,

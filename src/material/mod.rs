@@ -1,3 +1,5 @@
+pub use crate::core::material::*;
+
 mod reflective;
 pub use reflective::*;
 mod diffuse;

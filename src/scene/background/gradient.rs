@@ -1,7 +1,7 @@
 use std::collections::HashSet;
 use nalgebra::{Vector3};
 use ocl::{self, prm, builders::KernelBuilder};
-use clay_core::{Push, Store, Context, Background};
+use crate::{prelude::*, Context, scene::Background};
 
 #[derive(Debug, Clone)]
 pub struct GradientBackground {
@@ -18,7 +18,7 @@ impl GradientBackground {
 
 impl Background for GradientBackground {
     fn source(_: &mut HashSet<u64>) -> String {
-        "#include <clay/background/gradient_background.h>".to_string()
+        "#include <clay/scene/background/gradient.h>".to_string()
     }
 }
 

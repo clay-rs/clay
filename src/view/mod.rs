@@ -1,2 +1,4 @@
-mod proj_view;
-pub use proj_view::ProjView;
+pub use crate::core::view::*;
+
+mod point;
+pub use point::*;

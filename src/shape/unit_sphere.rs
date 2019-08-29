@@ -1,7 +1,6 @@
 use std::collections::HashSet;
-use clay_core::{
-    pack::*,
-    class::*,
+use crate::{
+    prelude::*,
     shape::*,
 };
 

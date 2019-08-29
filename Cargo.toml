@@ -1,6 +1,6 @@
 [package]
 name = "clay"
-version = "0.0.1"
+version = "0.0.2"
 authors = ["Alexey Gerasev <alexey.gerasev@gmail.com>"]
 license = "MIT/Apache-2.0"
 edition = "2018"
@@ -24,12 +24,12 @@ lazy_static = "1.3.0"
 regex = "1"
 uuid = { version = "0.7", features = ["v4"] }
 
-#clay-core = { git = "https://github.com/clay-rs/clay-core.git", rev = "2e08f9cc78f8f0657faa7c94b8fd038cde35ebeb" }
-clay-core = { path = "../clay-core" }
+clay-core = { git = "https://github.com/clay-rs/clay-core.git", rev = "14a3a4a1893e7658adad6b9167ed9326e0b91886" }
+#clay-core = { path = "../clay-core" }
 
 [build-dependencies]
 walkdir = "2"
 
 [dev-dependencies]
-#clay-viewer = { git = "https://github.com/clay-rs/clay-viewer.git", rev = "0a41f502486641f107f729005dc3b68975e979a7" }
-clay-viewer = { path = "../clay-viewer" }
+clay-viewer = { git = "https://github.com/clay-rs/clay-viewer.git", rev = "e8d9a84aa7a8de1790dacf92025b861dda0da85f" }
+#clay-viewer = { path = "../clay-viewer" }

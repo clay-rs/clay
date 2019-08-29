@@ -1,4 +1,3 @@
-use clay_core::Chain;
-use super::{Linear, Shift};
+use crate::map::*;
 
 pub type Affine = Chain<Linear, Shift>;

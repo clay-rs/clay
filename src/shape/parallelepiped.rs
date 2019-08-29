@@ -1,14 +1,9 @@
 use std::collections::HashSet;
 use nalgebra::{Vector3, Matrix3};
-use clay_core::{
-    pack::*,
-    class::*,
+use crate::{
+    prelude::*,
     map::*,
     shape::*,
-};
-use crate::{
-    map::{Linear, Shift, Affine},
-    shape::{UnitCube, Sphere},
 };
 
 
