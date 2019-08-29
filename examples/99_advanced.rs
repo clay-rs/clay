@@ -14,7 +14,8 @@ use clay::{
     scene::TargetListScene, view::ProjView,
     shape::*, material::*,
     background::{GradientBackground as GradBg},
-    process::{DefaultRenderer, DefaultPostproc},
+    filter::{GlareFilter},
+    process::{DefaultRenderer, Postproc},
 };
 use clay_viewer::{Window};
 
@@ -118,8 +119,10 @@ fn main() {
         ori: Matrix3::identity(),
     };
 
+    let filter = GlareFilter::new(0.01);
+
     let mut renderer = DefaultRenderer::<MyScene, MyView>::new(dims, scene, view).unwrap();
-    let postproc_builder = DefaultPostproc::builder().unwrap();
+    let postproc_builder = Postproc::<GlareFilter>::builder().unwrap();
 
     create_dir_all("./__gen_programs").unwrap();
     for (name, prog) in [
@@ -135,7 +138,7 @@ fn main() {
         println!("render build log:\n{}", message);
     }
 
-    let (mut postproc, message) = postproc_builder.build(&context, dims).unwrap();
+    let (mut postproc, message) = postproc_builder.build(&context, dims, filter).unwrap();
     if message.len() > 0 {
         println!("filter build log:\n{}", message);
     }

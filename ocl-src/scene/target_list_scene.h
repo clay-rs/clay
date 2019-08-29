@@ -6,14 +6,10 @@
 #define SCENE_ARGS_DEF \
     __global const int *object_buffer_int, \
     __global const float *object_buffer_float, \
-    int object_size_int, \
-    int object_size_float, \
     int objects_count, \
     \
     __global const int *target_buffer_int, \
     __global const float *target_buffer_float, \
-    int target_size_int, \
-    int target_size_float, \
     int targets_count, \
     \
     BACKGROUND_ARGS_DEF
@@ -21,14 +17,10 @@
 #define SCENE_ARGS \
     object_buffer_int, \
     object_buffer_float, \
-    object_size_int, \
-    object_size_float, \
     objects_count, \
     \
     target_buffer_int, \
     target_buffer_float, \
-    target_size_int, \
-    target_size_float, \
     targets_count, \
     \
     BACKGROUND_ARGS
@@ -65,8 +57,8 @@ bool scene_trace(
             continue;
         }
         
-        __global const int *ibuf = object_buffer_int + object_size_int*i;
-        __global const float *fbuf = object_buffer_float + object_size_float*i;
+        __global const int *ibuf = object_buffer_int + OBJECT_SIZE_INT*i;
+        __global const float *fbuf = object_buffer_float + OBJECT_SIZE_FLOAT*i;
         if (__object_hit(
             seed, ray,
             ibuf + OBJ_DI, fbuf + OBJ_DF,
@@ -88,7 +80,7 @@ bool scene_trace(
                 return false;
             }
         } else if (ray.history & RAY_DIFFUSE) {
-            if (tar_idx > -1) {
+            if (ray.target != tar_idx) {
                 return false;
             }
         }
@@ -102,8 +94,8 @@ bool scene_trace(
         float3 target_dir = (float3)(0.0f);
         if (random_uniform(seed) > 0.5f) {
             int target_idx = floor(random_uniform(seed)*targets_count);
-            __global const int *tibuf = target_buffer_int + target_size_int*target_idx;
-            __global const float *tfbuf = target_buffer_float + target_size_float*target_idx;
+            __global const int *tibuf = target_buffer_int + TARGET_SIZE_INT*target_idx;
+            __global const float *tfbuf = target_buffer_float + TARGET_SIZE_FLOAT*target_idx;
 
             //float brightness = tfbuf[0];
             target = tibuf[0];
@@ -116,8 +108,8 @@ bool scene_trace(
         }
 
         // Bounce from material
-        __global const int *ibuf = object_buffer_int + object_size_int*hit_idx;
-        __global const float *fbuf = object_buffer_float + object_size_float*hit_idx;
+        __global const int *ibuf = object_buffer_int + OBJECT_SIZE_INT*hit_idx;
+        __global const float *fbuf = object_buffer_float + OBJECT_SIZE_FLOAT*hit_idx;
         bool bounce = __object_bounce(
             seed, ray, hit_pos, hit_norm,
             directed, target_dir, target_size,

@@ -6,8 +6,6 @@
 #define SCENE_ARGS_DEF \
     __global const int *object_buffer_int, \
     __global const float *object_buffer_float, \
-    int object_size_int, \
-    int object_size_float, \
     int objects_count, \
     \
     BACKGROUND_ARGS_DEF
@@ -15,8 +13,6 @@
 #define SCENE_ARGS \
     object_buffer_int, \
     object_buffer_float, \
-    object_size_int, \
-    object_size_float, \
     objects_count, \
     \
     BACKGROUND_ARGS
@@ -45,8 +41,8 @@ bool scene_trace(
             continue;
         }
         
-        __global const int *ibuf = object_buffer_int + object_size_int*i;
-        __global const float *fbuf = object_buffer_float + object_size_float*i;
+        __global const int *ibuf = object_buffer_int + OBJECT_SIZE_INT*i;
+        __global const float *fbuf = object_buffer_float + OBJECT_SIZE_FLOAT*i;
         if (__object_hit(seed, ray, ibuf, fbuf, &enter, &exit, &norm)) {
             if (enter < hit_enter) {
                 hit_enter = enter;
@@ -60,8 +56,8 @@ bool scene_trace(
     if (hit_idx >= 0) {
         float3 hit_pos = ray.start + ray.dir*hit_enter;
 
-        __global const int *ibuf = object_buffer_int + object_size_int*hit_idx;
-        __global const float *fbuf = object_buffer_float + object_size_float*hit_idx;
+        __global const int *ibuf = object_buffer_int + OBJECT_SIZE_INT*hit_idx;
+        __global const float *fbuf = object_buffer_float + OBJECT_SIZE_FLOAT*hit_idx;
         if(__object_bounce(
             seed, ray, hit_pos, hit_norm,
             false, (float3)(0.0f), 0.0f,

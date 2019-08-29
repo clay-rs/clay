@@ -43,6 +43,8 @@ impl<O: Object, B: Background> Scene for ListScene<O, B> {
                     method, O::inst_name(), method,
                 )
             }).collect::<Vec<_>>().join("\n"),
+            format!("#define OBJECT_SIZE_INT {}", O::size_int()),
+            format!("#define OBJECT_SIZE_FLOAT {}", O::size_float()),
             "#include <clay/scene/list_scene.h>".to_string(),
         ]
         .join("\n")

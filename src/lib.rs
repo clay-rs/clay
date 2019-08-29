@@ -11,6 +11,8 @@ pub mod scene;
 pub mod view;
 pub mod background;
 
+pub mod filter;
+
 pub mod process;
 pub use process::*;
 

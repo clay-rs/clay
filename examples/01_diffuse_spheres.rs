@@ -61,7 +61,7 @@ fn main() {
     }
 
     let (mut postproc, message) = DefaultPostproc::builder().unwrap()
-    .build(&context, dims).unwrap();
+    .build_default(&context, dims).unwrap();
     if message.len() > 0 {
         println!("filter build log:\n{}", message);
     }

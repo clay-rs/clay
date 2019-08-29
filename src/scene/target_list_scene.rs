@@ -118,6 +118,10 @@ impl<O: Object + Targeted<T>, T: Target, B: Background> Scene for TargetListScen
                     method, T::inst_name(), method,
                 )
             }).collect::<Vec<_>>().join("\n"),
+            format!("#define OBJECT_SIZE_INT {}", ObjectData::<O>::size_int()),
+            format!("#define OBJECT_SIZE_FLOAT {}", ObjectData::<O>::size_float()),
+            format!("#define TARGET_SIZE_INT {}", TargetData::<T>::size_int()),
+            format!("#define TARGET_SIZE_FLOAT {}", TargetData::<T>::size_float()),
             "#include <clay/scene/target_list_scene.h>".to_string(),
         ]
         .join("\n")
