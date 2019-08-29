@@ -13,5 +13,5 @@ install:
 
 script:
   - cargo build --all-targets
-  - cargo run --example ocl_info
+  - cargo run --example 00_ocl_info
   - cargo test --all-targets
