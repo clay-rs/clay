@@ -1,22 +1,33 @@
 use std::collections::HashSet;
 use ocl::{self, prm, builders::KernelBuilder};
-use nalgebra::{Vector3, Matrix3};
+use nalgebra::{Vector3, Rotation3};
 use crate::{prelude::*, Context, view::View};
 
 
 #[derive(Debug, Clone)]
-pub struct PointView {
+pub struct ProjectionView {
     pub pos: Vector3<f64>,
-    pub ori: Matrix3<f64>,
+    pub ori: Rotation3<f64>,
 }
 
-impl View for PointView {
+impl ProjectionView {
+    pub fn new(pos: Vector3<f64>, ori: Rotation3<f64>) -> Self {
+        Self { pos, ori }
+    }
+
+    pub fn update(&mut self, pos: Vector3<f64>, ori: Rotation3<f64>) {
+        self.pos = pos;
+        self.ori = ori;
+    } 
+}
+
+impl View for ProjectionView {
 	fn source(_: &mut HashSet<u64>) -> String {
 		"#include <clay/view/proj_view.h>\n".to_string()
 	}
 }
 
-impl Store for PointView {
+impl Store for ProjectionView {
     type Data = Self;
     fn create_data(&self, _context: &Context) -> clay_core::Result<Self::Data> {
         Ok(self.clone())
@@ -27,14 +38,14 @@ impl Store for PointView {
     }
 }
 
-impl Push for PointView {
+impl Push for ProjectionView {
     fn args_def(kb: &mut KernelBuilder) {
         kb
         .arg(prm::Float3::zero())
         .arg(prm::Float16::zero());
     }
     fn args_set(&mut self, i: usize, k: &mut ocl::Kernel) -> crate::Result<()> {
-        let mapf = self.ori.map(|x| x as f32);
+        let mapf = self.ori.matrix().map(|x| x as f32);
         let mut map16 = [0f32; 16];
         map16[0..3].copy_from_slice(&mapf.as_slice()[0..3]);
         map16[4..7].copy_from_slice(&mapf.as_slice()[3..6]);

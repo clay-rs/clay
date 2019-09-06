@@ -1,51 +1,16 @@
-use std::{
-    ops::Deref,
-    marker::PhantomData,
-};
 use crate::{
-    Context,
     filter::{Filter, IdentityFilter},
 };
-
 pub use crate::core::process::{
-    PostprocBuilder as CorePostprocBuilder, PostprocCollector,
-    Postproc as CorePostproc,
+    PostprocBuilder, PostprocCollector, Postproc,
 };
 
-
-pub struct Postproc<F: Filter> {
-    phantom: PhantomData<F>,
+pub fn create_postproc<F: Filter>() -> PostprocCollector<F> {
+    let mut collector = crate::core::process::create_postproc::<F>();
+    collector.add_hook(crate::source());
+    collector
 }
 
-pub struct PostprocBuilder<F: Filter>(
-    CorePostprocBuilder<F>,
-);
-
-impl<F: Filter> Deref for PostprocBuilder<F> {
-    type Target = CorePostprocBuilder<F>;
-    fn deref(&self) -> &Self::Target {
-        &self.0
-    }
+pub fn create_default_postproc() -> PostprocCollector<IdentityFilter> {
+    create_postproc::<IdentityFilter>()
 }
-
-impl<F: Filter> Postproc<F> {
-    pub fn builder() -> crate::Result<PostprocBuilder<F>> {
-        let mut builder = CorePostproc::<F>::builder();
-        builder.add_hook(crate::source());
-        builder.collect().map(|b| PostprocBuilder(b))
-    }
-}
-
-impl<F: Filter> PostprocBuilder<F> {
-    pub fn build(self, context: &Context, dims: (usize, usize), filter: F) -> crate::Result<(CorePostproc<F>, String)> {
-        self.0.build(context, dims, filter)
-    }
-}
-
-impl<F: Filter + Default> PostprocBuilder<F> {
-    pub fn build_default(self, context: &Context, dims: (usize, usize)) -> crate::Result<(CorePostproc<F>, String)> {
-        self.0.build(context, dims, F::default())
-    }
-}
-
-pub type DefaultPostproc = Postproc<IdentityFilter>;

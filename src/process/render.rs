@@ -1,22 +1,11 @@
-use std::marker::PhantomData;
-use crate::{
-    scene::Scene, view::View,
-};
-
+use crate::{scene::Scene, view::View};
 pub use crate::core::process::{
-    RendererBuilder, Renderer as CoreRenderer,
-    RenderData, RenderWorker,
+    RendererBuilder, Renderer,
+    RenderWorker, RenderData,
 };
 
-
-pub struct Renderer<S, V> {
-    phantom: PhantomData<(S, V)>
-}
-
-impl<S: Scene, V: View> Renderer<S, V> {
-    pub fn builder() -> RendererBuilder<S, V> {
-        let mut builder = CoreRenderer::<S, V>::builder();
-        builder.add_hook(crate::source());
-        builder
-    }
+pub fn create_renderer<S: Scene, V: View>() -> RendererBuilder<S, V> {
+    let mut builder = crate::core::process::create_renderer::<S, V>();
+    builder.add_hook(crate::source());
+    builder
 }

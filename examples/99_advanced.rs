@@ -2,23 +2,22 @@ use std::{
     env,
     io::Write,
     fs::{File, create_dir_all},
+    time::Duration,
 };
-use ocl::{Platform, Device};
-use nalgebra::{Vector3, Matrix3};
+use nalgebra::{Vector3, Matrix3, Rotation3};
 use clay::{
     prelude::*,
-    Context,
     shape::*,
     material::*,
     object::*,
     scene::{TargetListScene, GradientBackground as GradBg},
-    view::PointView,
+    view::ProjectionView,
     filter::{IdentityFilter},
-    process::{Renderer, Postproc},
+    process::{create_renderer, create_postproc},
     shape_select, material_select, material_combine,
 };
-use clay_viewer::{Window};
-
+use clay_viewer::{Window, Motion};
+use clay_utils::{args, FrameCounter};
 
 shape_select!(MyShape {
     Cube(TC=Parallelepiped),
@@ -35,23 +34,13 @@ material_select!(MyMaterial {
 });
 type MyObject = Covered<MyShape, MyMaterial>;
 type MyScene = TargetListScene<MyObject, Sphere, GradBg>;
-type MyView = PointView;
+type MyView = ProjectionView;
 
 
-fn main() {
+fn main() -> clay::Result<()> {
     // Parse args to select OpenCL platform
-    let args = env::args().collect::<Vec<_>>();
-    let platform = if args.len() > 1 {
-        let platform_list = Platform::list();
-        let index = args[1].parse::<usize>().unwrap();
-        assert!(platform_list.len() > index);
-        platform_list[index]
-    } else {
-        Platform::default()
-    };
-    let device = Device::first(platform).unwrap();
-    let context = Context::new(platform, device).unwrap();
-    let dims = (1000, 800);
+    let context = args::parse(env::args())?;
+    let dims = (1280, 800);
 
     let mut scene = TargetListScene::new(GradBg::new(
         Vector3::new(0.2, 0.2, 0.4), Vector3::zeros(),
@@ -86,8 +75,8 @@ fn main() {
     );
     scene.add(
         MyShape::from(Parallelepiped::new(
-            0.25*Matrix3::identity(),
-            Vector3::new(1.0, 0.0, 0.25),
+            0.3*Matrix3::identity(),
+            Vector3::new(1.0, 0.0, 0.3),
         ))
         .cover(MyMaterial::from(Glossy::new(
             (0.2, Reflective {}),
@@ -96,8 +85,8 @@ fn main() {
     );
     scene.add(
         MyShape::from(Ellipsoid::new(
-            0.25*Matrix3::identity(),
-            Vector3::new(0.0, 0.0, 0.25),
+            0.5*Matrix3::identity(),
+            Vector3::new(0.0, 0.0, 0.5),
         ))
         .cover(MyMaterial::from(Glossy::new(
             (0.1, Reflective {}),
@@ -106,63 +95,66 @@ fn main() {
     );
     scene.add(
         MyShape::from(Ellipsoid::new(
-            0.5*Matrix3::identity(),
-            Vector3::new(0.5, 1.0, 0.5),
+            0.4*Matrix3::identity(),
+            Vector3::new(0.5, 1.0, 0.4),
         ))
         .cover(MyMaterial::from(
             Diffuse {}.color_with(Vector3::new(0.5, 0.9, 0.5)),
         ))
     );
 
-    let origin = Vector3::new(0.0, -2.0, 1.0);
-    let view = PointView {
-        pos: origin,
-        ori: Matrix3::identity(),
-    };
+    let view = ProjectionView::new(
+        Vector3::new(0.5, -2.0, 2.0),
+        Rotation3::face_towards(&-Vector3::new(0.0, 1.0,-0.75), &Vector3::z_axis()),
+    );
 
-    let mut renderer = Renderer::<MyScene, MyView>::builder().build(dims, scene, view).unwrap();
-    let postproc_builder = Postproc::<IdentityFilter>::builder().unwrap();
+    let mut renderer = create_renderer::<MyScene, MyView>().build(dims, scene, view)?;
+    let postproc_builder = create_postproc::<IdentityFilter>().collect()?;
 
-    create_dir_all("./__gen_programs").unwrap();
+    create_dir_all("./__gen_programs")?;
     for (name, prog) in [
         ("render.c", &renderer.program()),
         ("filter.c", &postproc_builder.program()),
     ].iter() {
-        File::create(&format!("__gen_programs/{}", name)).unwrap()
-        .write_all(prog.source().as_bytes()).unwrap();
+        File::create(&format!("__gen_programs/{}", name))?
+        .write_all(prog.source().as_bytes())?;
     }
 
-    let (mut worker, message) = renderer.create_worker(&context).unwrap();
+    let (mut worker, message) = renderer.create_worker(&context)?;
     if message.len() > 0 {
         println!("render build log:\n{}", message);
     }
 
-    let (mut postproc, message) = postproc_builder.build(&context, dims, IdentityFilter::new()).unwrap();
+    let (mut postproc, message) = postproc_builder.build(&context, dims, IdentityFilter::new())?;
     if message.len() > 0 {
         println!("filter build log:\n{}", message);
     }
 
-    let mut window = Window::new(dims).unwrap();
+    let mut window = Window::new(dims)?;
+    window.set_capture_mode(true);
 
-    'main: loop {
-        let quit = window.poll().unwrap();
-        if quit {
-            break 'main;
+    let mut motion = Motion::new(renderer.view.pos, renderer.view.ori.clone());
+
+    let mut fcnt = FrameCounter::new();
+
+    while !window.poll_with_handler(&mut motion)? {
+        if motion.was_updated() {
+            worker.data_mut().buffer_mut().clear()?;
         }
+        let dt = window.state().frame_duration();
+        motion.step(dt);
 
-        let (pos, ori) = window.view_params();
-        renderer.view.pos = pos + origin;
-        renderer.view.ori = ori.matrix().clone();
-        renderer.update_data(&context, worker.data_mut()).unwrap();
+        renderer.view.update(motion.pos(), motion.ori());
+        renderer.update_data(&context, worker.data_mut())?;
 
-        if window.was_updated() {
-            worker.data_mut().buffer_mut().clear().unwrap();
-        }
-        worker.run().unwrap();
+        let n = worker.run_for(Duration::from_millis(20))?;
+        fcnt.step_frame(dt, n);
 
-        postproc.process_one(&worker.data().buffer()).unwrap();
-        postproc.make_image().unwrap();
+        postproc.process_one(&worker.data().buffer())?;
+        postproc.make_image()?;
 
-        window.draw(postproc.image()).unwrap();
+        window.draw(postproc.image())?;
     }
+
+    Ok(())
 }
