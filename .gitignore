@@ -2,3 +2,5 @@
 **/*.rs.bk
 Cargo.lock
 __gen_*
+*.png
+/screenshots
