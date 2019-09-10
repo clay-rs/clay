@@ -1,0 +1,41 @@
+[package]
+name = "clay"
+version = "0.1.0"
+authors = ["Alexey Gerasev <alexey.gerasev@gmail.com>"]
+license = "MIT/Apache-2.0"
+edition = "2018"
+
+description = "Fast, modular and extendable ray tracer powered by OpenCL"
+homepage = "https://clay-rs.github.io/"
+repository = "https://github.com/clay-rs/clay"
+
+keywords = ["ray-tracing", "opencl"]
+categories = ["graphics", "rendering", "multimedia"]
+
+readme = "README.md"
+build = "build.rs"
+
+[dependencies]
+ocl = "0.19"
+ocl-include = "0.3.3"
+nalgebra = "0.18"
+rand = "0.7"
+lazy_static = "1.3.0"
+regex = "1"
+uuid = { version = "0.7", features = ["v4"] }
+
+clay-core = "0.1"
+#clay-core = { git = "https://github.com/clay-rs/clay-core.git", rev = "c6e3ce379d6a883917bd2f26d48336c2d679e8de" }
+#clay-core = { path = "../clay-core" }
+
+[build-dependencies]
+walkdir = "2"
+
+[dev-dependencies]
+#clay-viewer = "0.1"
+clay-viewer = { git = "https://github.com/clay-rs/clay-viewer.git", rev = "55811475ee86f9592eb7395231176a415d8f69c4" }
+#clay-viewer = { path = "../clay-viewer" }
+
+#clay-utils = "0.1"
+clay-utils = { git = "https://github.com/clay-rs/clay-utils.git", rev = "09b920798c9b3f08f8703910a62a5b26c6c19139" }
+#clay-utils = { path = "../clay-utils" }
