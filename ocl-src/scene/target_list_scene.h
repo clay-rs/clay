@@ -13,6 +13,7 @@
     int targets_count, \
     \
     int max_depth, \
+    float target_prob, \
     \
     BACKGROUND_ARGS_DEF
 
@@ -26,6 +27,7 @@
     targets_count, \
     \
     max_depth, \
+    target_prob, \
     \
     BACKGROUND_ARGS
 
@@ -94,7 +96,7 @@ bool scene_trace(
         bool directed = false;
         float target_size = 0.0f;
         float3 target_dir = (float3)(0.0f);
-        if (random_uniform(seed) > 0.5f) {
+        if (random_uniform(seed) < target_prob) {
             int target_idx = floor(random_uniform(seed)*targets_count);
             __global const int *tibuf = target_buffer_int + TARGET_SIZE_INT*target_idx;
             __global const float *tfbuf = target_buffer_float + TARGET_SIZE_FLOAT*target_idx;
@@ -122,9 +124,9 @@ bool scene_trace(
             if (directed) {
                 new_ray->target = target;
                 new_ray->history |= RAY_TARGETED;
-                new_ray->color *= 2.0f*targets_count; // reverse probability of specific target sampling
+                new_ray->color *= targets_count/target_prob;
             } else {
-                new_ray->color *= 2.0f; // reverse probability of not sampling any target
+                new_ray->color *= 1.0f/(1.0f - target_prob);
             }
             return true;
         }

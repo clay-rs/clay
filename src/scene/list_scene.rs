@@ -16,8 +16,8 @@ use crate::{
 /// Scene with linear complexity of object search.
 pub struct ListScene<O: Object, B: Background> {
     objects: Vec<O>,
-    background: B,
     uuid: Uuid,
+    background: B,
     max_depth: usize,
 }
 
@@ -31,12 +31,18 @@ impl<O: Object, B: Background> ListScene<O, B> {
         self.uuid = Uuid::new_v4();
     }
 
+    pub fn background(&self) -> &B {
+        &self.background
+    }
+    pub fn background_mut(&mut self) -> &mut B {
+        &mut self.background
+    }
+
     pub fn max_depth(&self) -> usize {
         self.max_depth
     }
     pub fn set_max_depth(&mut self, max_depth: usize) {
         self.max_depth = max_depth;
-        self.uuid = Uuid::new_v4();
     }
 }
 
@@ -78,6 +84,9 @@ impl<O: Object, B: Background> Store for ListScene<O, B> {
     fn update_data(&self, context: &Context, data: &mut Self::Data) -> clay_core::Result<()> {
         if self.uuid != data.uuid {
             *data = self.create_data(context)?;
+        } else {
+            data.max_depth = self.max_depth;
+            self.background.update_data(context, &mut data.background)?;
         }
         Ok(())
     }

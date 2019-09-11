@@ -145,6 +145,7 @@ fn main() -> clay::Result<()> {
         motion.step(dt);
 
         renderer.view.update(motion.pos(), motion.ori());
+        renderer.view.fov = motion.fov;
         renderer.update_data(&context, worker.data_mut())?;
 
         let n = worker.run_for(Duration::from_millis(20))?;

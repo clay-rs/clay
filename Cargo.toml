@@ -33,7 +33,7 @@ walkdir = "2"
 
 [dev-dependencies]
 #clay-viewer = "0.1"
-clay-viewer = { git = "https://github.com/clay-rs/clay-viewer.git", rev = "55811475ee86f9592eb7395231176a415d8f69c4" }
+clay-viewer = { git = "https://github.com/clay-rs/clay-viewer.git", rev = "651a10171ed978de6af76d074da40672af6ab7f0" }
 #clay-viewer = { path = "../clay-viewer" }
 
 #clay-utils = "0.1"

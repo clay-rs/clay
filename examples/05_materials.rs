@@ -45,11 +45,12 @@ fn main() -> clay::Result<()> {
     let context = Context::new(platform, device)?;
 
     // Dimensions of the window
-    let dims = (1280, 800);
+    let dims = (1920, 1080);
 
     // Initialize the scene
-    let mut scene = TargetListScene::new(ConstBg::new(Vector3::new(0.3, 0.3, 2.0)));
+    let mut scene = TargetListScene::new(ConstBg::new(Vector3::new(0.8, 0.8, 2.0)));
     scene.set_max_depth(8);
+    scene.set_target_prob(0.1);
 
     // Add room
     let size = (3.0, 3.0, 1.5); // room parameters

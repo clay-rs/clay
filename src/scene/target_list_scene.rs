@@ -75,11 +75,16 @@ pub struct TargetListScene<O: Object + Targeted<T>, T: Target, B: Background> {
     background: B,
     uuid: Uuid,
     max_depth: usize,
+    target_prob: f64,
 }
 
 impl<O: Object + Targeted<T>, T: Target, B: Background> TargetListScene<O, T, B> {
     pub fn new(background: B) -> Self {
-        Self { elements: Cell::new(Vec::new()), background, uuid: Uuid::new_v4(), max_depth: 4 } 
+        Self {
+            elements: Cell::new(Vec::new()), background,
+            uuid: Uuid::new_v4(), max_depth: 4,
+            target_prob: 0.5,
+        } 
     }
     pub fn add(&mut self, object: O) {
         self.elements.get_mut().push((object, None));
@@ -91,12 +96,25 @@ impl<O: Object + Targeted<T>, T: Target, B: Background> TargetListScene<O, T, B>
         self.uuid = Uuid::new_v4();
     }
 
+    pub fn background(&self) -> &B {
+        &self.background
+    }
+    pub fn background_mut(&mut self) -> &mut B {
+        &mut self.background
+    }
+
     pub fn max_depth(&self) -> usize {
         self.max_depth
     }
     pub fn set_max_depth(&mut self, max_depth: usize) {
         self.max_depth = max_depth;
-        self.uuid = Uuid::new_v4();
+    }
+
+    pub fn target_prob(&self) -> f64 {
+        self.target_prob
+    }
+    pub fn set_target_prob(&mut self, target_prob: f64) {
+        self.target_prob = target_prob;
     }
 }
 
@@ -106,6 +124,7 @@ pub struct TargetListSceneData<O: Object + Targeted<T>, T: Target, B: Background
     background: B::Data,
     uuid: Uuid,
     max_depth: usize,
+    target_prob: f64,
 }
 
 impl<O: Object + Targeted<T>, T: Target, B: Background> Scene for TargetListScene<O, T, B> {
@@ -189,12 +208,17 @@ impl<O: Object + Targeted<T>, T: Target, B: Background> Store for TargetListScen
         Ok(Self::Data {
             object_buffer, target_buffer,
             background: self.background.create_data(context)?,
-            uuid: self.uuid, max_depth: self.max_depth,
+            uuid: self.uuid,
+            max_depth: self.max_depth, target_prob: self.target_prob,
         })
     }
     fn update_data(&self, context: &Context, data: &mut Self::Data) -> clay_core::Result<()> {
         if self.uuid != data.uuid {
             *data = self.create_data(context)?;
+        } else {
+            data.max_depth = self.max_depth;
+            data.target_prob = self.target_prob;
+            self.background.update_data(context, &mut data.background)?;
         }
         Ok(())
     }
@@ -205,6 +229,7 @@ impl<O: Object + Targeted<T>, T: Target, B: Background> Push for TargetListScene
         InstanceBuffer::<ObjectData<O>>::args_def(kb);
         InstanceBuffer::<TargetData<T>>::args_def(kb);
         kb.arg(0i32);
+        kb.arg(0f32);
         B::Data::args_def(kb);
     }
     fn args_set(&mut self, i: usize, k: &mut ocl::Kernel) -> crate::Result<()> {
@@ -213,14 +238,15 @@ impl<O: Object + Targeted<T>, T: Target, B: Background> Push for TargetListScene
         j += InstanceBuffer::<ObjectData<O>>::args_count();
         self.target_buffer.args_set(j, k)?;
         j += InstanceBuffer::<TargetData<T>>::args_count();
-        k.set_arg(j, &(self.max_depth as i32))?;
-        j += 1;
+        k.set_arg(j + 0, &(self.max_depth as i32))?;
+        k.set_arg(j + 1, &(self.target_prob as f32))?;
+        j += 2;
         self.background.args_set(j, k)
     }
     fn args_count() -> usize {
         InstanceBuffer::<ObjectData<O>>::args_count() +
         InstanceBuffer::<TargetData<T>>::args_count() +
-        1 +
+        2 +
         B::Data::args_count()
     }
 }
