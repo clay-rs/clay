@@ -45,7 +45,7 @@ fn main() -> clay::Result<()> {
     let context = Context::new(platform, device)?;
 
     // Dimensions of the window
-    let dims = (800, 600);
+    let dims = (1280, 800);
 
     // Initialize the scene
     let mut scene = TargetListScene::new(ConstBg::new(Vector3::new(0.3, 0.3, 2.0)));
@@ -121,28 +121,33 @@ fn main() -> clay::Result<()> {
     // Bed
     scene.add(MyShape::from(Parallelepiped::new(
         Matrix3::from_diagonal(&Vector3::new(0.8, 1.2, 0.3)),
-        Vector3::new(-(size.0 - 0.6 - thc), size.1 - 1.2 - thc, 0.3),
+        Vector3::new(-(size.0 - 0.8 - thc), size.1 - 1.2 - thc, 0.3 + thc),
     )).cover(MyMaterial::from(Diffuse {}.color_with(Vector3::new(0.9, 0.9, 0.9)))));
+    // Shelf
+    scene.add(MyShape::from(Parallelepiped::new(
+        Matrix3::from_diagonal(&Vector3::new(0.8, 0.2, 1.0)),
+        Vector3::new(-(size.0 - 0.8 - thc), -(size.1 - 0.2 - thc), 1.0),
+    )).cover(MyMaterial::from(Diffuse {}.color_with(Vector3::new(0.9, 0.9, 0.9)))));
+    // Mirror
+    scene.add(MyShape::from(Parallelepiped::new(
+        Matrix3::from_diagonal(&Vector3::new(0.5, 0.01, 0.75)),
+        Vector3::new(0.0, size.1 - 0.01, 1.25),
+    )).cover(MyMaterial::from(Reflective {})));
     // Ball
     scene.add(MyShape::from(Ellipsoid::new(
-        0.4*Matrix3::identity(),
-        Vector3::new(0.0, size.1 - 0.4 - thc, 0.4),
+        0.25*Matrix3::identity(),
+        Vector3::new(-0.25*(size.0 - 0.25), 0.25*(size.1 - 0.25), 0.25),
     )).cover(MyMaterial::from(Glossy::new(
         (0.1, Reflective {}),
         (0.9, Diffuse {}.color_with(Vector3::new(0.9, 0.3, 0.3))),
     ))));
-    // Mirror
-    scene.add(MyShape::from(Parallelepiped::new(
-        Matrix3::from_diagonal(&Vector3::new(0.5, 0.01, 0.75)),
-        Vector3::new(1.0, size.1 - 0.01, 1.25),
-    )).cover(MyMaterial::from(Reflective {})));
     // Table
     scene.add(MyShape::from(Parallelepiped::new(
-        Matrix3::from_diagonal(&Vector3::new(0.6, 0.6, 0.2)),
-        Vector3::new(0.0, 0.0, 0.3),
+        Matrix3::from_diagonal(&Vector3::new(0.6, 0.6, 0.1)),
+        Vector3::new(0.0, size.1 - 0.6, 0.2),
     )).cover(MyMaterial::from(Glossy::new(
-        (0.5, Reflective {}),
-        (0.5, Diffuse {}.color_with(Vector3::new(0.9, 0.9, 0.9))),
+        (0.6, Reflective {}),
+        (0.4, Diffuse {}.color_with(Vector3::new(0.2, 0.2, 0.2))),
     ))));
 
     // Add ground
@@ -155,7 +160,7 @@ fn main() -> clay::Result<()> {
     let dist = 1e4;
     let lrad = 2e-2*dist;
     scene.add_targeted(MyShape::from(Ellipsoid::new(
-        lrad*Matrix3::identity(), dist*Vector3::new(1.0, 0.4, 0.4),
+        lrad*Matrix3::identity(), dist*Vector3::new(1.0, 0.3, 0.3),
     )).cover(MyMaterial::from(Luminous {}.color_with(1e4*Vector3::new(1.0, 1.0, 0.6)))));
     
     // Create view
@@ -163,7 +168,7 @@ fn main() -> clay::Result<()> {
         Vector3::new(2.0, 0.0, 1.0),
         Rotation3::face_towards(&-Vector3::new(-1.0, 0.0, 0.0), &Vector3::z_axis()),
     );
-    view.fov = 1.5;
+    view.fov = 1.2;
 
     // Create renderer and worker
     let mut renderer = create_renderer::<MyScene, MyView>().build(dims, scene, view)?;
@@ -195,7 +200,7 @@ fn main() -> clay::Result<()> {
         renderer.update_data(&context, worker.data_mut())?;
 
         // Render
-        worker.run_for(Duration::from_millis(20))?;
+        worker.run_for(Duration::from_millis(200))?;
 
         // Postprocess
         postproc.process_one(&worker.data().buffer())?;
