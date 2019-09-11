@@ -7,6 +7,7 @@
     __global const int *object_buffer_int, \
     __global const float *object_buffer_float, \
     int objects_count, \
+    int max_depth, \
     \
     BACKGROUND_ARGS_DEF
 
@@ -14,10 +15,9 @@
     object_buffer_int, \
     object_buffer_float, \
     objects_count, \
+    max_depth, \
     \
     BACKGROUND_ARGS
-
-#define MAX_DEPTH 4
 
 
 bool scene_trace(
@@ -82,7 +82,7 @@ float3 __scene_trace(
     float3 color = (float3)(0.0f);
     int i = 0;
     Ray current_ray = ray;
-    for (i = 0; i < MAX_DEPTH; ++i) {
+    for (i = 0; i < max_depth; ++i) {
         Ray next_ray = ray_new();
         bool bounce = scene_trace(seed, current_ray, &next_ray, &color, SCENE_ARGS);
         if (!bounce) {

@@ -16,7 +16,7 @@ impl ConstantBackground {
 
 impl Background for ConstantBackground {
     fn source(_: &mut HashSet<u64>) -> String {
-        "#include <clay/scene/background/constant_background.h>".to_string()
+        "#include <clay/scene/background/constant.h>".to_string()
     }
 }
 

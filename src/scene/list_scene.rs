@@ -18,15 +18,24 @@ pub struct ListScene<O: Object, B: Background> {
     objects: Vec<O>,
     background: B,
     uuid: Uuid,
+    max_depth: usize,
 }
 
 impl<O: Object, B: Background> ListScene<O, B> {
     pub fn new(background: B) -> Self {
-        Self { objects: Vec::new(), background, uuid: Uuid::new_v4() }
+        Self { objects: Vec::new(), background, uuid: Uuid::new_v4(), max_depth: 4 }
     }
 
     pub fn add(&mut self, object: O) {
         self.objects.push(object);
+        self.uuid = Uuid::new_v4();
+    }
+
+    pub fn max_depth(&self) -> usize {
+        self.max_depth
+    }
+    pub fn set_max_depth(&mut self, max_depth: usize) {
+        self.max_depth = max_depth;
         self.uuid = Uuid::new_v4();
     }
 }
@@ -54,6 +63,7 @@ pub struct ListSceneData<O: Object, B: Background> {
     buffer: InstanceBuffer<O>,
     background: B::Data,
     uuid: Uuid,
+    max_depth: usize,
 }
 
 impl<O: Object, B: Background> Store for ListScene<O, B> {
@@ -62,7 +72,7 @@ impl<O: Object, B: Background> Store for ListScene<O, B> {
         Ok(ListSceneData {
             buffer: InstanceBuffer::new(context, self.objects.iter())?,
             background: self.background.create_data(context)?,
-            uuid: self.uuid,
+            uuid: self.uuid, max_depth: self.max_depth,
         })
     }
     fn update_data(&self, context: &Context, data: &mut Self::Data) -> clay_core::Result<()> {
@@ -76,16 +86,20 @@ impl<O: Object, B: Background> Store for ListScene<O, B> {
 impl<O: Object, B: Background> Push for ListSceneData<O, B> {
     fn args_def(kb: &mut KernelBuilder) {
         InstanceBuffer::<O>::args_def(kb);
+        kb.arg(0i32);
         B::Data::args_def(kb);
     }
     fn args_set(&mut self, i: usize, k: &mut ocl::Kernel) -> crate::Result<()> {
         let mut j = i;
         self.buffer.args_set(j, k)?;
         j += InstanceBuffer::<O>::args_count();
+        k.set_arg(j, &(self.max_depth as i32))?;
+        j += 1;
         self.background.args_set(j, k)
     }
     fn args_count() -> usize {
         InstanceBuffer::<O>::args_count() +
+        1 +
         B::Data::args_count()
     }
 }

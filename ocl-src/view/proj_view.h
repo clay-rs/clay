@@ -9,11 +9,13 @@ typedef struct {
 
 #define VIEW_ARGS_DEF \
     float3 view_pos, \
-    float16 view_map
+    float16 view_map, \
+    float fov
 
 #define VIEW_ARGS \
     view_pos, \
-    view_map
+    view_map,\
+    fov
 
 
 float2 ptos(int2 pos, int2 size) {
@@ -39,7 +41,7 @@ Ray __view_emit(
     float2 v = ptos_rand(seed, pos, size);
     Ray ray = {
         .start = view_pos,
-        .dir = normalize(v.x*view_map.s012 + v.y*view_map.s456 - 1.0f*view_map.s89a),
+        .dir = normalize(v.x*view_map.s012 + v.y*view_map.s456 - 1.0f/fov*view_map.s89a),
         .color = (float3)(1.0f, 1.0f, 1.0f),
         .origin = -1,
         .target = -1,
