@@ -11,6 +11,8 @@ use clay::{
     process::{create_renderer, create_default_postproc},
 };
 use clay_viewer::{Window};
+use clay_utils::{args, FrameCounter};
+
 
 // Here we declare our object - a combination of
 // spherical shape and colored diffuse material

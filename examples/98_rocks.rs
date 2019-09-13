@@ -8,18 +8,27 @@ use clay::{
     scene::{TargetListScene, GradientBackground as GradBg},
     view::ProjectionView,
     process::{create_renderer, create_default_postproc},
-    shape_select, material_select,
+    shape_select, material_select, material_combine,
 };
 use clay_viewer::{Window, Motion};
 use clay_utils::{args, FrameCounter};
-
 
 shape_select!(MyShape {
     P(TP=Parallelepiped),
     S(TS=Ellipsoid),
 });
+material_combine!(Glossy {
+    reflect: Reflective,
+    diffuse: Colored<Diffuse>,
+});
+material_combine!(Glowing {
+    reflect: Reflective,
+    diffuse: Colored<Luminous>,
+});
 material_select!(MyMaterial {
     D(TD=Colored<Diffuse>),
+    G(TG=Glossy),
+    F(TF=Glowing),
     L(TL=Colored<Luminous>),
 });
 
@@ -45,47 +54,55 @@ fn main() -> clay::Result<()> {
         Vector3::new(0.0, 0.0, 1.0),
     ));
 
-    // Add complex shape
-    let mut shapes = Vec::new();
-    let size = 1.0;
-    let fill = 0.5;
-    for i in 0..4 {
-        let (x, y) = (2.0*((i % 2) as f64) - 1.0, 2.0*((i / 2) as f64) - 1.0);
-        shapes.push(Parallelepiped::new(
-            Matrix3::from_diagonal(&Vector3::new(fill/3.0, fill/3.0, 1.0))*size,
-            (Vector3::new(x, y, 0.0)*(1.0 - fill/3.0) + Vector3::new(0.0, 0.0, 1.0))*size,
-        ));
-        shapes.push(Parallelepiped::new(
-            Matrix3::from_diagonal(&Vector3::new(fill, 3.0 - 2.0*fill, fill))*size/3.0,
-            (Vector3::new(x, 0.0, y)*(1.0 - fill/3.0) + Vector3::new(0.0, 0.0, 1.0))*size,
-        ));
-        shapes.push(Parallelepiped::new(
-            Matrix3::from_diagonal(&Vector3::new(3.0 - 2.0*fill, fill, fill))*size/3.0,
-            (Vector3::new(0.0, x, y)*(1.0 - fill/3.0) + Vector3::new(0.0, 0.0, 1.0))*size,
-        ));
-    }
-    for p in shapes {
-        scene.add(MyShape::from(p).cover(
-            MyMaterial::from(Diffuse {}.color_with(Vector3::new(0.3, 0.3, 0.9)))
-        ));
+    // Ground
+    scene.add(MyShape::from(Parallelepiped::new(
+        Matrix3::from_diagonal(&Vector3::new(1000.0, 1000.0, 0.5)),
+        Vector3::new(0.0, 0.0, -0.5),
+    )).cover(MyMaterial::from(Diffuse {}.color_with(Vector3::new(0.9, 0.9, 0.9)))));
+    
+    // Rocks
+    let mut rocks = Vec::new();
+
+    rocks.push((30.0, (30.0, 60.0), 1e3*Vector3::new(1.0, 0.5, 0.5)));
+    rocks.push((100.0, (0.0, 200.0), 1e3*Vector3::new(0.5, 0.5, 1.0)));
+    rocks.push((15.0, (-30.0, 30.0), 1e3*Vector3::new(0.5, 1.0, 0.5)));
+
+    let rot = Rotation3::rotation_between(
+        &Vector3::new(1.0, 1.0, 1.0),
+        &Vector3::new(0.0, 0.0, 1.0),
+    ).unwrap().matrix().clone();
+    for (size, pos, color) in rocks {
+        scene.add(MyShape::from(Parallelepiped::new(
+            size*3.0f64.sqrt()/2.0*rot.clone(),
+            Vector3::new(pos.0, pos.1, -0.5*size),
+        )).cover(MyMaterial::from(Diffuse {}.color_with(Vector3::new(0.9, 0.9, 0.9)))));
+        let tsize = 0.025*size;
+        scene.add_targeted(MyShape::from(Parallelepiped::new(
+            tsize*3.0f64.sqrt()/2.0*rot*Matrix3::from_diagonal(&Vector3::new(0.5, 0.5, 2.0)),
+            Vector3::new(pos.0, pos.1, 1.2*size + 2.0*tsize),
+        )).cover(MyMaterial::from(Luminous {}.color_with(color))));
     }
 
-    // Add ground
-    scene.add(
-        MyShape::from(Parallelepiped::new(
-            Matrix3::from_diagonal(&Vector3::new(10.0, 10.0, 0.5)),
-            Vector3::new(0.0, 0.0, -0.5),
-        ))
-        .cover(MyMaterial::from(Diffuse {}.color_with(Vector3::new(0.9, 0.9, 0.9))))
-    );
+    scene.add(MyShape::from(Ellipsoid::new(
+        0.25*Matrix3::identity(),
+        Vector3::new(1.0, 0.0, 0.25),
+    )).cover(MyMaterial::from(Luminous {}.color_with(2.0*Vector3::new(0.8, 1.0, 0.8)))));
 
-    // Add light source
-    scene.add_targeted(
-        MyShape::from(Ellipsoid::new(
-            0.1*Matrix3::identity(), Vector3::new(4.0, 6.0, 8.0),
-        ))
-        .cover(MyMaterial::from(Luminous {}.color_with(1e4*Vector3::new(1.0, 1.0, 0.9))))
-    );
+    scene.add(MyShape::from(Ellipsoid::new(
+        0.4*Matrix3::identity(),
+        Vector3::new(0.0, 1.0, 0.4),
+    )).cover(MyMaterial::from(Glossy::new(
+        (0.2, Reflective {}),
+        (0.8, Diffuse {}.color_with(Vector3::new(0.9, 0.9, 0.9))),
+    ))));
+
+    scene.add(MyShape::from(Parallelepiped::new(
+        0.5*Matrix3::identity(),
+        Vector3::new(-1.0, 0.0, 0.5),
+    )).cover(MyMaterial::from(Glossy::new(
+        (0.5, Reflective {}),
+        (0.5, Diffuse {}.color_with(Vector3::new(0.9, 0.9, 0.9))),
+    ))));
     
     // Create view
     let view = ProjectionView::new(

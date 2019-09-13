@@ -1,9 +1,7 @@
-use std::time::Duration;
-use ocl::{Platform, Device};
+use std::{env, time::Duration};
 use nalgebra::{Vector3, Rotation3, Matrix3};
 use clay::{
     prelude::*,
-    Context,
     shape::*,
     material::*,
     object::*,
@@ -13,6 +11,8 @@ use clay::{
     shape_select,
 };
 use clay_viewer::{Window, Motion};
+use clay_utils::{args, FrameCounter};
+
 
 shape_select!(MyShape {
     P(TP=Parallelepiped),
@@ -29,10 +29,8 @@ type MyView = ProjectionView;
 
 
 fn main() -> clay::Result<()> {
-    // Select default OpenCL platform and device
-    let platform = Platform::default();
-    let device = Device::first(platform)?;
-    let context = Context::new(platform, device)?;
+    // Parse args to select OpenCL platform
+    let context = args::parse(env::args())?;
 
     // Dimensions of the window
     let dims = (1280, 800);
@@ -99,6 +97,9 @@ fn main() -> clay::Result<()> {
     // Create motion controller
     let mut motion = Motion::new(renderer.view.pos, renderer.view.ori.clone());
 
+    // Structure for performance measurement (optional)
+    let mut fcnt = FrameCounter::new();
+
     // Main loop - repeatedly update view and render
     while !window.poll_with_handler(&mut motion)? {
         if motion.was_updated() {
@@ -106,14 +107,18 @@ fn main() -> clay::Result<()> {
             worker.data_mut().buffer_mut().clear()?;
         }
         // Move to a new location
-        motion.step(window.state().frame_duration());
+        let dt = window.state().frame_duration();
+        motion.step(dt);
 
         // Update view location
         renderer.view.update(motion.pos(), motion.ori());
+        renderer.view.fov = motion.fov;
         renderer.update_data(&context, worker.data_mut())?;
 
         // Render
-        worker.run_for(Duration::from_millis(20))?;
+        let n = worker.run_for(Duration::from_millis(20))?;
+        // Print FPS (optional)
+        fcnt.step_frame(dt, n);
 
         // Postprocess
         postproc.process_one(&worker.data().buffer())?;
