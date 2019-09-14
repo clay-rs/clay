@@ -5,7 +5,7 @@ use clay::{
     shape::*,
     material::*,
     object::*,
-    scene::{ListScene, GradientBackground as GradBg},
+    scene::{ListScene, ConstantBackground as ConstBg},
     view::ProjectionView,
     filter::*,
     process::{create_renderer, create_postproc},
@@ -41,7 +41,7 @@ material_select!(MyMaterial {
 type MyObject = Covered<MyShape, MyMaterial>;
 
 // Scene contains our objects and has gradient background
-type MyScene = ListScene<MyObject, GradBg>;
+type MyScene = ListScene<MyObject, ConstBg>;
 type MyView = ProjectionView;
 
 
@@ -53,10 +53,7 @@ fn main() -> clay::Result<()> {
     let dims = (1280, 800);
 
     // Initialize the scene
-    let mut scene = MyScene::new(GradBg::new(
-        2e-1*Vector3::new(0.0, 0.0, 0.0), Vector3::new(0.0, 0.0, 0.0),
-        Vector3::new(0.0, 0.0, 1.0),
-    ));
+    let mut scene = MyScene::new(ConstBg::new(Vector3::new(0.0, 0.0, 0.0)));
     scene.set_max_depth(6);
 
     scene.add(
@@ -76,7 +73,7 @@ fn main() -> clay::Result<()> {
         ))
         .cover(MyMaterial::from(Glossy::new(
             (0.2, Reflective {}),
-            (0.8, Diffuse {}.color_with(Vector3::new(1.0, 0.1, 0.1))),
+            (0.8, Diffuse {}.color_with(Vector3::new(1.0, 0.01, 0.01))),
         )))
     );
     scene.add(
@@ -85,7 +82,7 @@ fn main() -> clay::Result<()> {
             Vector3::new(0.0, -1.0, 0.3),
         ))
         .cover(MyMaterial::from(
-            Diffuse {}.color_with(Vector3::new(0.3, 0.1, 0.9))
+            Diffuse {}.color_with(Vector3::new(0.1, 0.01, 0.9))
         ))
     );
     scene.add(
@@ -94,7 +91,7 @@ fn main() -> clay::Result<()> {
             Vector3::new(0.0, 0.0, 0.25),
         ))
         .cover(MyMaterial::from(
-            Luminous {}.color_with(20.0*Vector3::new(1.0, 1.0, 0.5)),
+            Luminous {}.color_with(20.0*Vector3::new(1.0, 1.0, 0.2)),
         ))
     );
     scene.add(
@@ -105,7 +102,7 @@ fn main() -> clay::Result<()> {
         .cover(MyMaterial::from(Glowing::new(
             (0.1, Reflective {}),
             (0.6, Diffuse {}.color_with(Vector3::new(1.0, 1.0, 1.0))),
-            (0.3, Luminous {}.color_with(2.0*Vector3::new(0.1, 1.0, 0.1))),
+            (0.3, Luminous {}.color_with(2.0*Vector3::new(0.01, 1.0, 0.01))),
         )))
     );
 
