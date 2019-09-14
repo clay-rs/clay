@@ -7,7 +7,8 @@ use clay::{
     object::*,
     scene::{ListScene, GradientBackground as GradBg},
     view::ProjectionView,
-    process::{create_renderer, create_default_postproc},
+    filter::*,
+    process::{create_renderer, create_postproc},
     shape_select, material_select, material_combine,
 };
 use clay_viewer::{Window, Motion};
@@ -53,9 +54,10 @@ fn main() -> clay::Result<()> {
 
     // Initialize the scene
     let mut scene = MyScene::new(GradBg::new(
-        Vector3::new(0.3, 0.3, 0.6), Vector3::new(0.0, 0.0, 0.0),
+        2e-1*Vector3::new(0.0, 0.0, 0.0), Vector3::new(0.0, 0.0, 0.0),
         Vector3::new(0.0, 0.0, 1.0),
     ));
+    scene.set_max_depth(6);
 
     scene.add(
         MyShape::from(Parallelepiped::new(
@@ -63,8 +65,8 @@ fn main() -> clay::Result<()> {
             Vector3::new(-2.0, 0.0, 0.8),
         ))
         .cover(MyMaterial::from(Glossy::new(
-            (0.8, Reflective {}),
-            (0.2, Diffuse {}.color_with(Vector3::new(1.0, 1.0, 1.0))),
+            (0.95, Reflective {}),
+            (0.05, Diffuse {}.color_with(Vector3::new(1.0, 1.0, 1.0))),
         )))
     );
     scene.add(
@@ -74,7 +76,7 @@ fn main() -> clay::Result<()> {
         ))
         .cover(MyMaterial::from(Glossy::new(
             (0.2, Reflective {}),
-            (0.8, Diffuse {}.color_with(Vector3::new(1.0, 0.3, 0.3))),
+            (0.8, Diffuse {}.color_with(Vector3::new(1.0, 0.1, 0.1))),
         )))
     );
     scene.add(
@@ -83,7 +85,7 @@ fn main() -> clay::Result<()> {
             Vector3::new(0.0, -1.0, 0.3),
         ))
         .cover(MyMaterial::from(
-            Diffuse {}.color_with(Vector3::new(0.9, 0.9, 0.9))
+            Diffuse {}.color_with(Vector3::new(0.3, 0.1, 0.9))
         ))
     );
     scene.add(
@@ -92,7 +94,7 @@ fn main() -> clay::Result<()> {
             Vector3::new(0.0, 0.0, 0.25),
         ))
         .cover(MyMaterial::from(
-            Luminous {}.color_with(3.0*Vector3::new(0.5, 1.0, 0.5)),
+            Luminous {}.color_with(20.0*Vector3::new(1.0, 1.0, 0.5)),
         ))
     );
     scene.add(
@@ -103,7 +105,7 @@ fn main() -> clay::Result<()> {
         .cover(MyMaterial::from(Glowing::new(
             (0.1, Reflective {}),
             (0.6, Diffuse {}.color_with(Vector3::new(1.0, 1.0, 1.0))),
-            (0.3, Luminous {}.color_with(Vector3::new(1.0, 0.3, 0.3))),
+            (0.3, Luminous {}.color_with(2.0*Vector3::new(0.1, 1.0, 0.1))),
         )))
     );
 
@@ -120,8 +122,8 @@ fn main() -> clay::Result<()> {
 
     // Create view
     let view = ProjectionView::new(
-        Vector3::new(2.0, 0.0, 1.0),
-        Rotation3::face_towards(&-Vector3::new(-1.0, 0.0, 0.0), &Vector3::z_axis()),
+        Vector3::new(2.0, -2.0, 2.0),
+        Rotation3::face_towards(&-Vector3::new(-1.0, 0.8, -0.8), &Vector3::z_axis()),
     );
 
     // Create renderer and worker
@@ -129,8 +131,8 @@ fn main() -> clay::Result<()> {
     let (mut worker, _) = renderer.create_worker(&context)?;
 
     // Create dummy postprocessor
-    let (mut postproc, _) = create_default_postproc().collect()?
-    .build_default(&context, dims)?;
+    let (mut postproc, _) = create_postproc().collect()?
+    .build(&context, dims, LogFilter::new(-4.0, 2.0))?;
 
     // Create viewer window
     let mut window = Window::new(dims)?;
