@@ -12,6 +12,7 @@ use clay::{
 };
 use clay_viewer::{Window};
 
+
 // Here we declare our object - a combination of
 // spherical shape and colored diffuse material
 type MyObject = Covered<Sphere, Colored<Diffuse>>;

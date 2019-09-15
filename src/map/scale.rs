@@ -2,6 +2,7 @@ use std::collections::HashSet;
 use crate::{prelude::*, map::*};
 
 
+/// Isotropic scaling.
 pub struct Scale(pub f64);
 
 impl From<f64> for Scale {

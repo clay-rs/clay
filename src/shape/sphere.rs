@@ -8,6 +8,7 @@ use crate::{
 
 
 type SphereBase = ShapeMapper<UnitSphere, Chain<Scale, Shift>>;
+/// Shape obtained by scaling and shifting the unit sphere.
 pub struct Sphere(pub SphereBase);
 
 impl Sphere {

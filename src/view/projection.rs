@@ -4,15 +4,20 @@ use nalgebra::{Vector3, Rotation3};
 use crate::{prelude::*, Context, view::View};
 
 
+/// Perspective projection view.
 #[derive(Debug, Clone)]
 pub struct ProjectionView {
+    /// Position of the point of view.
     pub pos: Vector3<f64>,
+    /// Orientation.
     pub ori: Rotation3<f64>,
+    /// Field of view width.
+    pub fov: f64,
 }
 
 impl ProjectionView {
     pub fn new(pos: Vector3<f64>, ori: Rotation3<f64>) -> Self {
-        Self { pos, ori }
+        Self { pos, ori, fov: 1.0 }
     }
 
     pub fn update(&mut self, pos: Vector3<f64>, ori: Rotation3<f64>) {
@@ -42,7 +47,8 @@ impl Push for ProjectionView {
     fn args_def(kb: &mut KernelBuilder) {
         kb
         .arg(prm::Float3::zero())
-        .arg(prm::Float16::zero());
+        .arg(prm::Float16::zero())
+        .arg(0.0f32);
     }
     fn args_set(&mut self, i: usize, k: &mut ocl::Kernel) -> crate::Result<()> {
         let mapf = self.ori.matrix().map(|x| x as f32);
@@ -57,10 +63,11 @@ impl Push for ProjectionView {
 
         k.set_arg(i + 0, &prm::Float3::from(pos3))?;
         k.set_arg(i + 1, &prm::Float16::from(map16))?;
+        k.set_arg(i + 2, &(self.fov as f32))?;
 
         Ok(())
     }
     fn args_count() -> usize {
-        2
+        3
     }
 }

@@ -3,6 +3,7 @@ use nalgebra::{Vector3};
 use crate::{prelude::*, map::*};
 
 
+/// Shift along a specific vector.
 pub struct Shift(pub Vector3<f64>);
 
 impl From<Vector3<f64>> for Shift {

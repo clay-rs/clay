@@ -3,6 +3,8 @@ use nalgebra::{Vector3};
 use ocl::{self, prm, builders::KernelBuilder};
 use crate::{prelude::*, Context, scene::Background};
 
+
+/// Background of constant color.
 #[derive(Debug, Clone)]
 pub struct ConstantBackground {
     pub color: Vector3<f64>,
@@ -16,7 +18,7 @@ impl ConstantBackground {
 
 impl Background for ConstantBackground {
     fn source(_: &mut HashSet<u64>) -> String {
-        "#include <clay/scene/background/constant_background.h>".to_string()
+        "#include <clay/scene/background/constant.h>".to_string()
     }
 }
 

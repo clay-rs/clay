@@ -1,5 +1,5 @@
 use std::{env, time::Duration};
-use nalgebra::{Vector3, Rotation3};
+use nalgebra::{Vector3, Rotation3, Matrix3};
 use clay::{
     prelude::*,
     shape::*,
@@ -8,14 +8,20 @@ use clay::{
     scene::{ListScene, GradientBackground as GradBg},
     view::ProjectionView,
     process::{create_renderer, create_default_postproc},
+    shape_select,
 };
 use clay_viewer::{Window, Motion};
 use clay_utils::{args, FrameCounter};
 
 
+shape_select!(MyShape {
+    P(TP=Parallelepiped),
+    S(TS=Ellipsoid),
+});
+
 // Here we declare our object - a combination of
 // spherical shape and colored diffuse material
-type MyObject = Covered<Sphere, Colored<Diffuse>>;
+type MyObject = Covered<MyShape, Colored<Diffuse>>;
 
 // Scene contains our objects and has gradient background
 type MyScene = ListScene<MyObject, GradBg>;
@@ -35,20 +41,44 @@ fn main() -> clay::Result<()> {
         Vector3::new(0.0, 0.0, 1.0),
     ));
 
-    // Add two spheres to the scene
     scene.add(
-        Sphere::new(0.75, Vector3::new(-0.75, 0.0, 0.0))
-        .cover(Diffuse {}.color_with(Vector3::new(0.4, 1.0, 0.4)))
+        MyShape::from(Ellipsoid::new(
+            Matrix3::from_diagonal(&Vector3::new(0.8, 0.7, 0.4)),
+            Vector3::new(0.0, 0.0, 0.4),
+        ))
+        .cover(Diffuse {}.color_with(Vector3::new(0.9, 0.3, 0.3)))
     );
     scene.add(
-        Sphere::new(1.0, Vector3::new(1.0, 0.0, 0.0))
-        .cover(Diffuse {}.color_with(Vector3::new(0.4, 0.4, 1.0)))
+        MyShape::from(Ellipsoid::new(
+            Matrix3::from_diagonal(&Vector3::new(0.4, 0.5, 0.2)),
+            Vector3::new(0.0, 0.0, 1.0),
+        ))
+        .cover(Diffuse {}.color_with(Vector3::new(0.9, 0.9, 0.9)))
+    );
+    scene.add(
+        MyShape::from(Parallelepiped::new(
+            0.4/3.0f64.sqrt()*Rotation3::rotation_between(
+                &Vector3::new(1.0, 1.0, 1.0),
+                &Vector3::new(0.0, 0.0, 1.0),
+            ).unwrap().matrix().clone(),
+            Vector3::new(0.0, 0.0, 1.6),
+        ))
+        .cover(Diffuse {}.color_with(Vector3::new(0.9, 0.3, 0.3)))
+    );
+
+    // Add ground
+    scene.add(
+        MyShape::from(Parallelepiped::new(
+            Matrix3::from_diagonal(&Vector3::new(10.0, 10.0, 0.5)),
+            Vector3::new(0.0, 0.0, -0.5),
+        ))
+        .cover(Diffuse {}.color_with(Vector3::new(0.9, 0.9, 0.9)))
     );
 
     // Create view
     let view = ProjectionView::new(
-        Vector3::new(0.25, -3.0, 0.0),
-        Rotation3::face_towards(&-Vector3::new(0.0, 1.0, 0.0), &Vector3::z_axis()),
+        Vector3::new(2.0, 0.0, 1.0),
+        Rotation3::face_towards(&-Vector3::new(-1.0, 0.0, 0.0), &Vector3::z_axis()),
     );
 
     // Create renderer and worker

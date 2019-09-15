@@ -3,6 +3,8 @@ use nalgebra::{Vector3};
 use ocl::{self, prm, builders::KernelBuilder};
 use crate::{prelude::*, Context, scene::Background};
 
+
+/// Background with color gradient along the given direction.
 #[derive(Debug, Clone)]
 pub struct GradientBackground {
     pub front: Vector3<f64>,

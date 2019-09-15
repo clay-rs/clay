@@ -2,6 +2,9 @@ use std::collections::HashSet;
 use crate::{prelude::*, material::*};
 
 
+/// Reflective material.
+///
+/// Produces secondary ray in the same direction but with inverse normal component.
 #[derive(Clone, Debug, Default)]
 pub struct Reflective {}
 

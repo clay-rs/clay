@@ -8,7 +8,8 @@ use crate::{
 
 
 type EllipsoidBase = ShapeMapper<UnitSphere, Affine>;
-pub struct Ellipsoid(EllipsoidBase);
+/// Ellipsoid shape defined by affine transform on unit sphere.
+pub struct Ellipsoid(pub EllipsoidBase);
 
 impl Ellipsoid {
     pub fn new(ori: Matrix3<f64>, pos: Vector3<f64>) -> Self {

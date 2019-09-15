@@ -1,24 +1,34 @@
 use std::{env, time::Duration};
-use nalgebra::{Vector3, Rotation3};
+use nalgebra::{Vector3, Rotation3, Matrix3};
 use clay::{
     prelude::*,
     shape::*,
     material::*,
     object::*,
-    scene::{ListScene, GradientBackground as GradBg},
+    scene::{TargetListScene, GradientBackground as GradBg},
     view::ProjectionView,
     process::{create_renderer, create_default_postproc},
+    shape_select, material_select,
 };
 use clay_viewer::{Window, Motion};
 use clay_utils::{args, FrameCounter};
 
 
+shape_select!(MyShape {
+    P(TP=Parallelepiped),
+    S(TS=Ellipsoid),
+});
+material_select!(MyMaterial {
+    D(TD=Colored<Diffuse>),
+    L(TL=Colored<Luminous>),
+});
+
 // Here we declare our object - a combination of
 // spherical shape and colored diffuse material
-type MyObject = Covered<Sphere, Colored<Diffuse>>;
+type MyObject = Covered<MyShape, MyMaterial>;
 
 // Scene contains our objects and has gradient background
-type MyScene = ListScene<MyObject, GradBg>;
+type MyScene = TargetListScene<MyObject, Sphere, GradBg>;
 type MyView = ProjectionView;
 
 
@@ -30,25 +40,58 @@ fn main() -> clay::Result<()> {
     let dims = (1280, 800);
 
     // Initialize the scene
-    let mut scene = ListScene::new(GradBg::new(
-        Vector3::new(1.0, 1.0, 1.0), Vector3::new(0.0, 0.0, 0.0),
+    let mut scene = TargetListScene::new(GradBg::new(
+        Vector3::new(0.1, 0.1, 0.2), Vector3::new(0.0, 0.0, 0.0),
         Vector3::new(0.0, 0.0, 1.0),
     ));
+    scene.set_max_depth(4);
 
-    // Add two spheres to the scene
+    // Add complex shape
+    let mut shapes = Vec::new();
+    let size = 1.0;
+    let fill = 0.5;
+    for i in 0..4 {
+        let (x, y) = (2.0*((i % 2) as f64) - 1.0, 2.0*((i / 2) as f64) - 1.0);
+        shapes.push(Parallelepiped::new(
+            Matrix3::from_diagonal(&Vector3::new(fill/3.0, fill/3.0, 1.0))*size,
+            (Vector3::new(x, y, 0.0)*(1.0 - fill/3.0) + Vector3::new(0.0, 0.0, 1.0))*size,
+        ));
+        shapes.push(Parallelepiped::new(
+            Matrix3::from_diagonal(&Vector3::new(fill, 3.0 - 2.0*fill, fill))*size/3.0,
+            (Vector3::new(x, 0.0, y)*(1.0 - fill/3.0) + Vector3::new(0.0, 0.0, 1.0))*size,
+        ));
+        shapes.push(Parallelepiped::new(
+            Matrix3::from_diagonal(&Vector3::new(3.0 - 2.0*fill, fill, fill))*size/3.0,
+            (Vector3::new(0.0, x, y)*(1.0 - fill/3.0) + Vector3::new(0.0, 0.0, 1.0))*size,
+        ));
+    }
+    for p in shapes {
+        scene.add(MyShape::from(p).cover(
+            MyMaterial::from(Diffuse {}.color_with(Vector3::new(0.3, 0.3, 0.9)))
+        ));
+    }
+
+    // Add ground
     scene.add(
-        Sphere::new(0.75, Vector3::new(-0.75, 0.0, 0.0))
-        .cover(Diffuse {}.color_with(Vector3::new(0.4, 1.0, 0.4)))
-    );
-    scene.add(
-        Sphere::new(1.0, Vector3::new(1.0, 0.0, 0.0))
-        .cover(Diffuse {}.color_with(Vector3::new(0.4, 0.4, 1.0)))
+        MyShape::from(Parallelepiped::new(
+            Matrix3::from_diagonal(&Vector3::new(10.0, 10.0, 0.5)),
+            Vector3::new(0.0, 0.0, -0.5),
+        ))
+        .cover(MyMaterial::from(Diffuse {}.color_with(Vector3::new(0.9, 0.9, 0.9))))
     );
 
+    // Add light sources
+    scene.add_targeted(
+        MyShape::from(Ellipsoid::new(
+            1.0*Matrix3::identity(), 10.0*Vector3::new(4.0, 6.0, 8.0),
+        ))
+        .cover(MyMaterial::from(Luminous {}.color_with(2e4*Vector3::new(1.0, 1.0, 0.8))))
+    );
+    
     // Create view
     let view = ProjectionView::new(
-        Vector3::new(0.25, -3.0, 0.0),
-        Rotation3::face_towards(&-Vector3::new(0.0, 1.0, 0.0), &Vector3::z_axis()),
+        Vector3::new(2.0, 0.0, 1.0),
+        Rotation3::face_towards(&-Vector3::new(-1.0, 0.0, 0.0), &Vector3::z_axis()),
     );
 
     // Create renderer and worker
