@@ -8,6 +8,7 @@ use crate::{
 
 
 type ParallelepipedBase = ShapeMapper<UnitCube, Affine>;
+/// Parallelepiped shape defined by affine transform on unit cube.
 pub struct Parallelepiped(pub ParallelepipedBase);
 
 impl Parallelepiped {

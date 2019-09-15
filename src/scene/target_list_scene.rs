@@ -69,7 +69,7 @@ impl<O: Object> Pack for ObjectData<O> {
 type Element<O, T> = (O, Option<(T, f64)>);
 
 
-/// Scene with linear complexity and importance sampling of bright objects.
+/// Scene with linear complexity and importance sampling for bright objects.
 pub struct TargetListScene<O: Object + Targeted<T>, T: Target, B: Background> {
     elements: Cell<Vec<Element<O, T>>>,
     background: B,

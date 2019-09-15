@@ -2,6 +2,10 @@ use std::collections::HashSet;
 use crate::{prelude::*, material::*};
 
 
+/// Luminous material.
+///
+/// Returns the white color (to specify color use `Colored<_>` adapter)
+/// and doesn't produce secondary ray.
 #[derive(Clone, Debug, Default)]
 pub struct Luminous {}
 

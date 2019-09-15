@@ -41,9 +41,10 @@ fn main() -> clay::Result<()> {
 
     // Initialize the scene
     let mut scene = TargetListScene::new(GradBg::new(
-        Vector3::new(0.1, 0.1, 0.3), Vector3::new(0.0, 0.0, 0.0),
+        Vector3::new(0.1, 0.1, 0.2), Vector3::new(0.0, 0.0, 0.0),
         Vector3::new(0.0, 0.0, 1.0),
     ));
+    scene.set_max_depth(4);
 
     // Add complex shape
     let mut shapes = Vec::new();
@@ -79,12 +80,12 @@ fn main() -> clay::Result<()> {
         .cover(MyMaterial::from(Diffuse {}.color_with(Vector3::new(0.9, 0.9, 0.9))))
     );
 
-    // Add light source
+    // Add light sources
     scene.add_targeted(
         MyShape::from(Ellipsoid::new(
-            0.1*Matrix3::identity(), Vector3::new(4.0, 6.0, 8.0),
+            1.0*Matrix3::identity(), 10.0*Vector3::new(4.0, 6.0, 8.0),
         ))
-        .cover(MyMaterial::from(Luminous {}.color_with(1e4*Vector3::new(1.0, 1.0, 0.9))))
+        .cover(MyMaterial::from(Luminous {}.color_with(2e4*Vector3::new(1.0, 1.0, 0.8))))
     );
     
     // Create view

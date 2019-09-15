@@ -3,6 +3,8 @@ use nalgebra::{Vector3};
 use ocl::{self, prm, builders::KernelBuilder};
 use crate::{prelude::*, Context, scene::Background};
 
+
+/// Background of constant color.
 #[derive(Debug, Clone)]
 pub struct ConstantBackground {
     pub color: Vector3<f64>,

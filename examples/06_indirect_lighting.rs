@@ -7,7 +7,8 @@ use clay::{
     object::*,
     scene::{TargetListScene, ConstantBackground as ConstBg},
     view::ProjectionView,
-    process::{create_renderer, create_default_postproc},
+    filter::*,
+    process::{create_renderer, create_postproc},
     shape_select, material_select, material_combine,
 };
 use clay_viewer::{Window, Motion};
@@ -46,7 +47,7 @@ fn main() -> clay::Result<()> {
     let dims = (1280, 800);
 
     // Initialize the scene
-    let mut scene = TargetListScene::new(ConstBg::new(Vector3::new(0.5, 0.5, 1.5)));
+    let mut scene = TargetListScene::new(ConstBg::new(Vector3::new(1.0, 1.0, 3.0)));
     scene.set_max_depth(8);
     scene.set_target_prob(0.1);
 
@@ -65,15 +66,15 @@ fn main() -> clay::Result<()> {
     parts.push((Parallelepiped::new(
         Matrix3::from_diagonal(&Vector3::new(thc, size.1, size.2)),
         Vector3::new(-(size.0 + thc), 0.0, size.2),
-    ), Vector3::new(0.3, 0.3, 1.0)));
+    ), Vector3::new(0.1, 0.1, 1.0)));
     parts.push((Parallelepiped::new(
         Matrix3::from_diagonal(&Vector3::new(size.0 + 2.0*thc, thc, size.2)),
         Vector3::new(0.0, -(size.1 + thc), size.2),
-    ), Vector3::new(1.0, 1.0, 0.3)));
+    ), Vector3::new(1.0, 1.0, 0.1)));
     parts.push((Parallelepiped::new(
         Matrix3::from_diagonal(&Vector3::new(size.0 + 2.0*thc, thc, size.2)),
         Vector3::new(0.0, size.1 + thc, size.2),
-    ), Vector3::new(0.3, 1.0, 0.3)));
+    ), Vector3::new(0.1, 1.0, 0.1)));
     // last wall with window
     let mut wparts = Vec::new();
     wparts.push(Parallelepiped::new(
@@ -143,7 +144,7 @@ fn main() -> clay::Result<()> {
         Vector3::new(0.0, size.1 - 0.6, 0.2),
     )).cover(MyMaterial::from(Glossy::new(
         (0.1, Reflective {}),
-        (0.9, Diffuse {}.color_with(Vector3::new(0.2, 0.2, 0.2))),
+        (0.9, Diffuse {}.color_with(Vector3::new(0.2, 0.1, 0.1))),
     ))));
 
     // Add ground
@@ -157,7 +158,7 @@ fn main() -> clay::Result<()> {
     let lrad = 2e-2*dist;
     scene.add_targeted(MyShape::from(Ellipsoid::new(
         lrad*Matrix3::identity(), dist*Vector3::new(1.0, 0.2, 0.3),
-    )).cover(MyMaterial::from(Luminous {}.color_with(0.8e4*Vector3::new(1.0, 1.0, 0.6)))));
+    )).cover(MyMaterial::from(Luminous {}.color_with(1e5*Vector3::new(1.0, 1.0, 0.6)))));
     
     // Create view
     let mut view = ProjectionView::new(
@@ -171,8 +172,8 @@ fn main() -> clay::Result<()> {
     let (mut worker, _) = renderer.create_worker(&context)?;
 
     // Create dummy postprocessor
-    let (mut postproc, _) = create_default_postproc().collect()?
-    .build_default(&context, dims)?;
+    let (mut postproc, _) = create_postproc().collect()?
+    .build(&context, dims, LogFilter::new(-1.0, 2.0))?;
 
     // Create viewer window
     let mut window = Window::new(dims)?;

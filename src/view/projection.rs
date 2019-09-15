@@ -4,10 +4,14 @@ use nalgebra::{Vector3, Rotation3};
 use crate::{prelude::*, Context, view::View};
 
 
+/// Perspective projection view.
 #[derive(Debug, Clone)]
 pub struct ProjectionView {
+    /// Position of the point of view.
     pub pos: Vector3<f64>,
+    /// Orientation.
     pub ori: Rotation3<f64>,
+    /// Field of view width.
     pub fov: f64,
 }
 

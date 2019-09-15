@@ -3,6 +3,9 @@ use ocl::{self, builders::KernelBuilder};
 use crate::{Push, filter::Filter};
 
 
+/// Glare blur.
+///
+/// Creates horizontal and vertical stripes around bright objects.
 pub struct GlareFilter {
     strength: f64,
 }

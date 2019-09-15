@@ -3,6 +3,7 @@ use nalgebra::{Matrix3};
 use crate::{prelude::*, map::*};
 
 
+/// Linear transformation represented by a matrix.
 pub struct Linear(pub Matrix3<f64>);
 
 impl From<Matrix3<f64>> for Linear {

@@ -2,7 +2,9 @@ use std::collections::HashSet;
 use ocl::{self, builders::KernelBuilder};
 use crate::{Push, filter::Filter};
 
-
+/// Logarithmic filter.
+///
+/// Useful for scenes with wide dynamic range.
 pub struct LogFilter {
     lower: f64,
     upper: f64,
