@@ -7,7 +7,8 @@ use clay::{
     object::*,
     scene::{TargetListScene, GradientBackground as GradBg},
     view::ProjectionView,
-    process::{create_renderer, create_default_postproc},
+    filter::*,
+    process::{create_renderer, create_postproc},
     shape_select, material_select, material_combine,
 };
 use clay_viewer::{Window, Motion};
@@ -63,9 +64,9 @@ fn main() -> clay::Result<()> {
     // Rocks
     let mut rocks = Vec::new();
 
-    rocks.push((30.0, (30.0, 60.0), 1e3*Vector3::new(1.0, 0.5, 0.5)));
-    rocks.push((100.0, (0.0, 200.0), 1e3*Vector3::new(0.5, 0.5, 1.0)));
-    rocks.push((15.0, (-30.0, 30.0), 1e3*Vector3::new(0.5, 1.0, 0.5)));
+    rocks.push((30.0, (-60.0, 30.0), 3e3*Vector3::new(1.0, 0.4, 0.4)));
+    rocks.push((100.0, (-200.0,-0.0), 2e3*Vector3::new(0.4, 0.4, 1.0)));
+    rocks.push((15.0, (-30.0,-30.0), 3e3*Vector3::new(0.4, 1.0, 0.4)));
 
     let rot = Rotation3::rotation_between(
         &Vector3::new(1.0, 1.0, 1.0),
@@ -86,7 +87,7 @@ fn main() -> clay::Result<()> {
     scene.add(MyShape::from(Ellipsoid::new(
         0.25*Matrix3::identity(),
         Vector3::new(1.0, 0.0, 0.25),
-    )).cover(MyMaterial::from(Luminous {}.color_with(2.0*Vector3::new(0.8, 1.0, 0.8)))));
+    )).cover(MyMaterial::from(Luminous {}.color_with(1e1*Vector3::new(0.2, 1.0, 0.2)))));
 
     scene.add(MyShape::from(Ellipsoid::new(
         0.4*Matrix3::identity(),
@@ -115,8 +116,8 @@ fn main() -> clay::Result<()> {
     let (mut worker, _) = renderer.create_worker(&context)?;
 
     // Create dummy postprocessor
-    let (mut postproc, _) = create_default_postproc().collect()?
-    .build_default(&context, dims)?;
+    let (mut postproc, _) = create_postproc().collect()?
+    .build(&context, dims, LogFilter::new(-2.0, 1.0))?;
 
     // Create viewer window
     let mut window = Window::new(dims)?;
@@ -126,35 +127,40 @@ fn main() -> clay::Result<()> {
     // Create motion controller
     let mut motion = Motion::new(renderer.view.pos, renderer.view.ori.clone());
 
-    // Structure for performance measurement (optional)
-    let mut fcnt = FrameCounter::new();
+    // Structure for frame rate measurement (optional)
+    let mut fcnt = FrameCounter::new_with_log(Duration::from_secs(2));
 
     // Main loop - repeatedly update view and render
     while !window.poll_with_handler(&mut motion)? {
-        if motion.was_updated() {
-            // Clear cumulative buffer
-            worker.data_mut().buffer_mut().clear()?;
-        }
-        // Move to a new location
-        let dt = window.state().frame_duration();
-        motion.step(dt);
-
-        // Update view location
-        renderer.view.update(motion.pos(), motion.ori());
-        renderer.view.fov = motion.fov;
-        renderer.update_data(&context, worker.data_mut())?;
-
         // Render
         let n = worker.run_for(Duration::from_millis(20))?;
-        // Print FPS (optional)
-        fcnt.step_frame(dt, n);
 
         // Postprocess
         postproc.process_one(&worker.data().buffer())?;
         postproc.make_image()?;
 
         // Draw image to Window
-        window.draw(postproc.image())?;
+        window.draw(&postproc.image())?;
+
+        // Measure frame duration
+        let dt = window.step_frame();
+
+        // Check motion occured
+        if motion.was_updated() {
+            // Clear cumulative buffer
+            worker.data_mut().buffer_mut().clear()?;
+
+            // Move to a new location
+            motion.step(dt);
+            
+            // Update view location
+            renderer.view.update(motion.pos(), motion.ori());
+            renderer.view.fov = motion.fov;
+            renderer.update_data(&context, worker.data_mut())?;
+        }
+
+        // Count and print frame rate
+        fcnt.step_frame(dt, n);
     }
 
     Ok(())

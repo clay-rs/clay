@@ -135,26 +135,40 @@ fn main() -> clay::Result<()> {
 
     let mut motion = Motion::new(renderer.view.pos, renderer.view.ori.clone());
 
-    let mut fcnt = FrameCounter::new();
+    // Structure for frame rate measurement (optional)
+    let mut fcnt = FrameCounter::new_with_log(Duration::from_secs(2));
 
+    // Main loop - repeatedly update view and render
     while !window.poll_with_handler(&mut motion)? {
-        if motion.was_updated() {
-            worker.data_mut().buffer_mut().clear()?;
-        }
-        let dt = window.state().frame_duration();
-        motion.step(dt);
-
-        renderer.view.update(motion.pos(), motion.ori());
-        renderer.view.fov = motion.fov;
-        renderer.update_data(&context, worker.data_mut())?;
-
+        // Render
         let n = worker.run_for(Duration::from_millis(20))?;
-        fcnt.step_frame(dt, n);
 
+        // Postprocess
         postproc.process_one(&worker.data().buffer())?;
         postproc.make_image()?;
 
-        window.draw(postproc.image())?;
+        // Draw image to Window
+        window.draw(&postproc.image())?;
+
+        // Measure frame duration
+        let dt = window.step_frame();
+
+        // Check motion occured
+        if motion.was_updated() {
+            // Clear cumulative buffer
+            worker.data_mut().buffer_mut().clear()?;
+
+            // Move to a new location
+            motion.step(dt);
+            
+            // Update view location
+            renderer.view.update(motion.pos(), motion.ori());
+            renderer.view.fov = motion.fov;
+            renderer.update_data(&context, worker.data_mut())?;
+        }
+
+        // Count and print frame rate
+        fcnt.step_frame(dt, n);
     }
 
     Ok(())
