@@ -39,12 +39,9 @@ Ray __view_emit(
     VIEW_ARGS_DEF
 ) {
     float2 v = ptos_rand(seed, pos, size);
-    Ray ray = {
-        .start = view_pos,
-        .dir = normalize(v.x*view_map.s012 + v.y*view_map.s456 - 1.0f/fov*view_map.s89a),
-        .color = (float3)(1.0f, 1.0f, 1.0f),
-        .origin = -1,
-        .target = -1,
-    };
+    Ray ray = ray_new();
+    ray.start = view_pos;
+    ray.dir = normalize(v.x*view_map.s012 + v.y*view_map.s456 - 1.0f/fov*view_map.s89a);
+    ray.color = (float3)(1.0f, 1.0f, 1.0f);
     return ray;
 }
