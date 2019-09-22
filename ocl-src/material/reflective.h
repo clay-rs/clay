@@ -12,6 +12,5 @@ MATERIAL_BOUNCE_RET reflective_bounce(
     new_ray->start = pos;
     new_ray->dir = ray.dir - 2.0f*norm*dot(norm, ray.dir);
     new_ray->color = ray.color;
-    new_ray->history = ray.history;
     return true;
 }
