@@ -5,7 +5,7 @@ use clay::{
     shape::*,
     material::*,
     object::*,
-    scene::{TargetListScene, ConstantBackground as ConstBg},
+    scene::{TargetListScene, GradientBackground as GradBg},
     view::ProjectionView,
     filter::*,
     process::{create_renderer, create_postproc},
@@ -35,7 +35,7 @@ material_select!(MyMaterial {
 type MyObject = Covered<MyShape, MyMaterial>;
 
 // Scene contains our objects and has gradient background
-type MyScene = TargetListScene<MyObject, Sphere, ConstBg>;
+type MyScene = TargetListScene<MyObject, Sphere, GradBg>;
 type MyView = ProjectionView;
 
 
@@ -47,13 +47,16 @@ fn main() -> clay::Result<()> {
     let dims = (1280, 800);
 
     // Initialize the scene
-    let mut scene = TargetListScene::new(ConstBg::new(Vector3::new(1.0, 1.0, 3.0)));
+    let mut scene = TargetListScene::new(GradBg::new(
+        10.0*Vector3::new(0.1, 0.1, 1.0), 10.0*Vector3::new(0.5, 0.5, 1.0),
+        Vector3::new(0.0, 0.0, 1.0),
+    ));
     scene.set_max_depth(8);
     scene.set_target_prob(0.1);
 
     // Add room
     let size = (3.0, 3.0, 1.5); // room parameters
-    let (wpos, wsize) = (0.5, (1.5, 1.2)); // window parameters
+    let (wpos, wsize) = (0.5, (1.6, 1.0)); // window parameters
     let thc = 0.05; // thickness
     let mut parts = Vec::new();
     
@@ -66,15 +69,15 @@ fn main() -> clay::Result<()> {
     parts.push((Parallelepiped::new(
         Matrix3::from_diagonal(&Vector3::new(thc, size.1, size.2)),
         Vector3::new(-(size.0 + thc), 0.0, size.2),
-    ), Vector3::new(0.1, 0.1, 1.0)));
+    ), Vector3::new(0.4, 0.4, 1.0)));
     parts.push((Parallelepiped::new(
         Matrix3::from_diagonal(&Vector3::new(size.0 + 2.0*thc, thc, size.2)),
         Vector3::new(0.0, -(size.1 + thc), size.2),
-    ), Vector3::new(1.0, 1.0, 0.1)));
+    ), Vector3::new(0.4, 1.0, 0.4)));
     parts.push((Parallelepiped::new(
         Matrix3::from_diagonal(&Vector3::new(size.0 + 2.0*thc, thc, size.2)),
         Vector3::new(0.0, size.1 + thc, size.2),
-    ), Vector3::new(0.1, 1.0, 0.1)));
+    ), Vector3::new(1.0, 1.0, 0.4)));
     // last wall with window
     let mut wparts = Vec::new();
     wparts.push(Parallelepiped::new(
@@ -118,54 +121,71 @@ fn main() -> clay::Result<()> {
         (0.9, Diffuse {}.color_with(Vector3::new(0.9, 0.9, 0.9))),
     ))));
 
+    let gap = 0.05;
     // Bed
     scene.add(MyShape::from(Parallelepiped::new(
         Matrix3::from_diagonal(&Vector3::new(0.8, 1.2, 0.3)),
-        Vector3::new(-(size.0 - 0.8 - thc), size.1 - 1.2 - thc, 0.3 + thc),
+        Vector3::new(-(size.0 - 0.8 - gap), size.1 - 1.2 - gap, 0.3 + gap),
     )).cover(MyMaterial::from(Diffuse {}.color_with(Vector3::new(0.9, 0.9, 0.9)))));
     // Shelf
     scene.add(MyShape::from(Parallelepiped::new(
         Matrix3::from_diagonal(&Vector3::new(0.8, 0.2, 1.0)),
-        Vector3::new(-(size.0 - 0.8 - thc), -(size.1 - 0.2 - thc), 1.0),
-    )).cover(MyMaterial::from(Diffuse {}.color_with(Vector3::new(0.9, 0.9, 0.9)))));
+        Vector3::new(-(size.0 - 0.8 - gap), -(size.1 - 0.2 - gap), 1.0),
+    )).cover(MyMaterial::from(Glossy::new(
+        (0.1, Reflective {}),
+        (0.9, Diffuse {}.color_with(Vector3::new(1.0, 1.0, 1.0))),
+    ))));
     // Mirror
     scene.add(MyShape::from(Parallelepiped::new(
-        Matrix3::from_diagonal(&Vector3::new(0.8, 0.01, 0.75)),
-        Vector3::new(0.0, size.1 - 0.01, 1.25),
+        Matrix3::from_diagonal(&Vector3::new(1.0, 0.01, 0.8)),
+        Vector3::new(0.0, size.1 - 0.01, 1.3),
     )).cover(MyMaterial::from(Reflective {})));
     // Ball
     scene.add(MyShape::from(Ellipsoid::new(
         0.4*Matrix3::identity(),
-        Vector3::new(-(size.0 - 0.4 - thc), -0.4*(size.1 - 0.4), 0.4),
+        Vector3::new(-(size.0 - 0.4 - gap), -0.2*(size.1 - 0.4), 0.4),
     )).cover(MyMaterial::from(Reflective {})));
     // Table
-    scene.add(MyShape::from(Parallelepiped::new(
-        Matrix3::from_diagonal(&Vector3::new(0.6, 0.6, 0.1)),
-        Vector3::new(0.0, size.1 - 0.6, 0.2),
-    )).cover(MyMaterial::from(Glossy::new(
-        (0.1, Reflective {}),
-        (0.9, Diffuse {}.color_with(Vector3::new(0.2, 0.1, 0.1))),
-    ))));
+    let tsize = (0.6, 0.6, 0.4);
+    let tpos = (0.0, size.1 - tsize.1 - gap);
+    let tw = 0.05;
+    let mut tparts = Vec::new();
+    tparts.push(Parallelepiped::new(
+        Matrix3::from_diagonal(&Vector3::new(tsize.0, tsize.1, tw)),
+        Vector3::new(tpos.0, tpos.1, tsize.2 - tw),
+    ));
+    for i in 0..4 {
+        let s = (2.0*((i/2) as f64 - 0.5), 2.0*((i%2) as f64 - 0.5));
+        tparts.push(Parallelepiped::new(
+            Matrix3::from_diagonal(&Vector3::new(tw, tw, 0.5*(tsize.2 - 2.0*tw))),
+            Vector3::new(tpos.0 + s.0*(tsize.0 - tw), tpos.1 + s.1*(tsize.1 - tw), 0.5*(tsize.2 - 2.0*tw)),
+        ));
+    }
+    for tp in tparts {
+        scene.add(MyShape::from(tp).cover(MyMaterial::from(Glossy::new(
+            (0.1, Reflective {}),
+            (0.9, Diffuse {}.color_with(Vector3::new(0.2, 0.1, 0.1))),
+        ))));
+    }
 
     // Add ground
     scene.add(MyShape::from(Parallelepiped::new(
         Matrix3::from_diagonal(&Vector3::new(100.0, 100.0, 0.5)),
         Vector3::new(0.0, 0.0, -0.5 - 2.0*thc),
-    )).cover(MyMaterial::from(Diffuse {}.color_with(Vector3::new(0.3, 1.0, 0.3)))));
+    )).cover(MyMaterial::from(Diffuse {}.color_with(Vector3::new(0.5, 1.0, 0.3)))));
 
     // Add light source
     let dist = 1e4;
     let lrad = 2e-2*dist;
     scene.add_targeted(MyShape::from(Ellipsoid::new(
-        lrad*Matrix3::identity(), dist*Vector3::new(1.0, 0.2, 0.3),
-    )).cover(MyMaterial::from(Luminous {}.color_with(1e5*Vector3::new(1.0, 1.0, 0.6)))));
+        lrad*Matrix3::identity(), dist*Vector3::new(1.0,-0.1, 0.2),
+    )).cover(MyMaterial::from(Luminous {}.color_with(4e4*Vector3::new(1.0, 1.0, 0.6)))));
     
     // Create view
-    let mut view = ProjectionView::new(
-        Vector3::new(2.0, 0.0, 1.0),
-        Rotation3::face_towards(&-Vector3::new(-1.0, 0.0, 0.0), &Vector3::z_axis()),
+    let view = ProjectionView::new(
+        Vector3::new(1.5,-2.0, 1.0),
+        Rotation3::face_towards(&-Vector3::new(-0.85, 1.0,-0.1), &Vector3::z_axis()),
     );
-    view.fov = 1.2;
 
     // Create renderer and worker
     let mut renderer = create_renderer::<MyScene, MyView>().build(dims, scene, view)?;
@@ -173,7 +193,7 @@ fn main() -> clay::Result<()> {
 
     // Create dummy postprocessor
     let (mut postproc, _) = create_postproc().collect()?
-    .build(&context, dims, LogFilter::new(-1.0, 2.0))?;
+    .build(&context, dims, LogFilter::new(-1.0, 1.5))?;
 
     // Create viewer window
     let mut window = Window::new(dims)?;
@@ -183,33 +203,40 @@ fn main() -> clay::Result<()> {
     // Create motion controller
     let mut motion = Motion::new(renderer.view.pos, renderer.view.ori.clone());
 
-    let mut fcnt = FrameCounter::new();
+    // Structure for frame rate measurement (optional)
+    let mut fcnt = FrameCounter::new_with_log(Duration::from_secs(2));
 
     // Main loop - repeatedly update view and render
     while !window.poll_with_handler(&mut motion)? {
-        if motion.was_updated() {
-            // Clear cumulative buffer
-            worker.data_mut().buffer_mut().clear()?;
-        }
-        // Move to a new location
-        let dt = window.state().frame_duration();
-        motion.step(dt);
-
-        // Update view location
-        renderer.view.update(motion.pos(), motion.ori());
-        renderer.view.fov = motion.fov;
-        renderer.update_data(&context, worker.data_mut())?;
-
         // Render
         let n = worker.run_for(Duration::from_millis(20))?;
-        fcnt.step_frame(dt, n);
 
         // Postprocess
         postproc.process_one(&worker.data().buffer())?;
         postproc.make_image()?;
 
         // Draw image to Window
-        window.draw(postproc.image())?;
+        window.draw(&postproc.image())?;
+
+        // Measure frame duration
+        let dt = window.step_frame();
+
+        // Check motion occured
+        if motion.was_updated() {
+            // Clear cumulative buffer
+            worker.data_mut().buffer_mut().clear()?;
+
+            // Move to a new location
+            motion.step(dt);
+            
+            // Update view location
+            renderer.view.update(motion.pos(), motion.ori());
+            renderer.view.fov = motion.fov;
+            renderer.update_data(&context, worker.data_mut())?;
+        }
+
+        // Count and print frame rate
+        fcnt.step_frame(dt, n);
     }
 
     Ok(())

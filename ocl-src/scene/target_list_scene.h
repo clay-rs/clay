@@ -51,6 +51,8 @@ bool scene_trace(
     float hit_enter = INFINITY;
     float hit_exit = 0.0f;
     float3 hit_norm;
+    __global const int *oibuf = 0;
+    __global const float *ofbuf = 0;
 
     int i = 0;
     for (i = 0; i < objects_count; ++i) {
@@ -74,10 +76,12 @@ bool scene_trace(
                 hit_norm = norm;
                 hit_idx = i;
                 tar_idx = ibuf[0];
+                oibuf = ibuf;
+                ofbuf = fbuf;
             }
         }
     }
-    
+
     if (hit_idx >= 0) {
         if (ray.history & RAY_TARGETED) {
             if (ray.target != hit_idx) {
@@ -112,12 +116,10 @@ bool scene_trace(
         }
 
         // Bounce from material
-        __global const int *ibuf = object_buffer_int + OBJECT_SIZE_INT*hit_idx;
-        __global const float *fbuf = object_buffer_float + OBJECT_SIZE_FLOAT*hit_idx;
         bool bounce = __object_bounce(
             seed, ray, hit_pos, hit_norm,
             directed, target_dir, target_size,
-            ibuf + OBJ_DI, fbuf + OBJ_DF, new_ray, color
+            oibuf + OBJ_DI, ofbuf + OBJ_DF, new_ray, color
         );
         if (bounce && !(ray.history & RAY_TARGETED)) {
             new_ray->origin = hit_idx;
@@ -129,13 +131,14 @@ bool scene_trace(
                 new_ray->color *= 1.0f/(1.0f - target_prob);
             }
             return true;
+        } else {
+            return false;
         }
+    } else {
+        // Background
+        *color += __background(ray, BACKGROUND_ARGS);
         return false;
     }
-
-    // Background
-    *color += __background(ray, BACKGROUND_ARGS);
-    return false;
 }
 
 float3 __scene_trace(
@@ -144,10 +147,11 @@ float3 __scene_trace(
     SCENE_ARGS_DEF
 ) {
     float3 color = (float3)(0.0f);
-    int i = 0;
     Ray current_ray = ray;
+    int i = 0;
     for (i = 0; i < max_depth; ++i) {
         Ray next_ray = ray_new();
+        next_ray.history = current_ray.history;
         bool bounce = scene_trace(seed, current_ray, &next_ray, &color, SCENE_ARGS);
         if (!bounce) {
             break;
