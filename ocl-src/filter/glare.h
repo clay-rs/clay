@@ -1,14 +1,15 @@
 #pragma once
 
+#include <clay_core/filter/filter.h>
+
 #define GLARE_FILTER_ARGS_DEF \
     float glare_strength
 
 #define GLARE_FILTER_ARGS \
     glare_strength
 
-float3 glare_filter_apply(
-    int2 pos, int2 size,
-    __global const float *buffer,
+FILTER_RET glare_filter_apply(
+    FILTER_ARGS_DEF
     GLARE_FILTER_ARGS_DEF
 ) {
     int i;
